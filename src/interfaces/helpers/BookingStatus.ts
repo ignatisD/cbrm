@@ -1,0 +1,16 @@
+export enum BookingStatus {
+    "Checking" = "Checking",
+    "VerificationRequired" = "VerificationRequired",
+    "Submitted" = "Submitted",
+    "Failed" = "Failed",
+    "Succeeded" = "Succeeded",
+    "BookingNotLaunched" = "BookingNotLaunched",
+    "BookingInProgress" = "BookingInProgress",
+    "Unconfirmed" = "Unconfirmed",
+    "UnconfirmedBySupplier" = "UnconfirmedBySupplier",
+    "Duplicate" = "Duplicate",
+    "Cancelled" = "Cancelled",
+    "PendingCancellation" = "PendingCancellation",
+    "Reserved" = "Reserved",
+    "Open" = "Open",
+}

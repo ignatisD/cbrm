@@ -1,0 +1,36 @@
+{
+    "compilerOptions": {
+        "module": "commonjs",
+        "target": "ES6",
+        "noImplicitAny": false,
+        "moduleResolution": "node",
+        "resolveJsonModule": true,
+        "inlineSourceMap": true,
+        "outDir": "../dist",
+        "baseUrl": "./",
+        "allowSyntheticDefaultImports": true,
+        "typeRoots": [
+            "../node_modules/@types",
+            "./config/types"
+        ],
+        "paths": {
+            "@interfaces/*": ["interfaces/*"],
+            "@controllers/*": ["controllers/*"],
+            "@routes/*": ["routes/*"],
+            "@config/*": ["config/*"],
+            "@mailers/*": ["mailers/*"],
+            "@helpers/*": ["helpers/*"],
+            "@models/*": ["models/*"],
+            "@validators/*": ["validators/*"],
+            "@repository/*": ["repository/*"],
+            "@business/*": ["business/*"]
+        }
+    },
+    "include": [
+        "./**/*"
+    ],
+    "exclude": [
+        "../node_modules",
+        "../dist"
+    ]
+}

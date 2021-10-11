@@ -1,0 +1,23 @@
+version: "3.7"
+
+services:
+
+  cbrm:
+    hostname: "cbrm"
+    labels:
+      filebeat: "node"
+    image: node:14.17.3
+    build:
+      context: .
+      dockerfile: "Dockerfile"
+    env_file:
+      - .env
+    user: "node"
+    tty: true
+    ports:
+      - mode: host
+        protocol: tcp
+        published: 3000
+        target: 3000
+
+
