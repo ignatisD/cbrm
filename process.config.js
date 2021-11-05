@@ -1,3 +1,4 @@
+// eslint-disable
 module.exports = {
     "apps" : [
         {
@@ -11,3 +12,4 @@ module.exports = {
         }
     ]
 };
+// eslint-enable
