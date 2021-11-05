@@ -6,11 +6,14 @@ import * as PassportFB from "passport-facebook-token";
 import * as PassportGoogle from "passport-google-token";
 import * as jwt from "jsonwebtoken";
 import * as uuid from "uuid";
-import Redis from "@helpers/Redis";
+// Interfaces
+import IBusinessBase from "@interfaces/business/BusinessBase";
+import IUser, { RedisUser } from "@interfaces/models/User";
 import { IPayload, ITokenDurations, ITokenResponse } from "@interfaces/common/Payload";
+// Helpers
+import Redis from "@helpers/Redis";
 import ResponseError from "@helpers/common/ResponseError";
 import JsonResponse from "@helpers/JsonResponse";
-import IUser, { IRedisUser } from "@interfaces/models/User";
 
 export enum AuthError {
     TokenError = "TokenError",
@@ -26,7 +29,7 @@ export enum AuthError {
 export default class Authenticator {
 
     private readonly secret: string;
-    public static UserBusiness: any;
+    public static UserBusiness: IBusinessBase<IUser>;
 
     constructor(secret: string) {
         this.secret = secret;
@@ -70,7 +73,7 @@ export default class Authenticator {
         const fbStrategy: PassportFB.StrategyInstance = new PassportFB(Authenticator.fbOptions,
             async (accessToken: string, refreshToken: string, profile: PassportFB.Profile, done: (error: any, user?: any, info?: any) => void) => {
                 if (!accessToken || !profile.id) {
-                    done(new ResponseError("Error", "Token invalid"));
+                    done(new ResponseError(AuthError.TokenError, "Token invalid"));
                     return;
                 }
                 done(null, profile, {accessToken, refreshToken});
@@ -79,7 +82,7 @@ export default class Authenticator {
         const googleStrategy: PassportGoogle.Strategy = new PassportGoogle.Strategy(Authenticator.googleOptions,
             async (accessToken: string, refreshToken: string, profile: PassportGoogle.Profile, done: (error: any, user?: any, info?: any) => void) => {
                 if (!accessToken || !profile.id) {
-                    done(new ResponseError("Error", "Token invalid"));
+                    done(new ResponseError(AuthError.TokenError, "Token invalid"));
                     return;
                 }
                 done(null, profile, {accessToken, refreshToken});
@@ -137,11 +140,11 @@ export default class Authenticator {
      * @param {string} sessionId
      * @returns Promise<JsonResponse>
      */
-    public static userExists(sessionId: string): Promise<JsonResponse<IRedisUser|null>> {
+    public static userExists(sessionId: string): Promise<JsonResponse<RedisUser|null>> {
         const response = new JsonResponse();
         return Redis.instance()
             .get(sessionId)
-            .then((redisUser?: IRedisUser) => {
+            .then((redisUser?: RedisUser) => {
                 if (redisUser && redisUser._id) {
                     redisUser.sessionId = sessionId;
                     return response.ok(redisUser);
@@ -204,7 +207,7 @@ export default class Authenticator {
     public static auth(user: IUser, tokenDuration: string = null): Promise<JsonResponse<ITokenResponse>> {
         const response = new JsonResponse();
         const sessionId = uuid.v4();
-        const redisUser: IRedisUser = user;
+        const redisUser: RedisUser = user;
 
         const durations = Authenticator.getTokenDurationsAndTTL(tokenDuration);
         tokenDuration = durations.tokenDuration;
@@ -226,7 +229,7 @@ export default class Authenticator {
 
     public static update(sessionId: string, user: IUser) {
         const response = new JsonResponse();
-        const redisUser: IRedisUser = user;
+        const redisUser: RedisUser = user;
         return Redis.instance()
             .update(sessionId, redisUser)
             .then((result: boolean) => {
@@ -273,8 +276,8 @@ export default class Authenticator {
             });
     }
 
-    public static async extractUser(token: string): Promise<JsonResponse<IRedisUser>> {
-        const response = new JsonResponse<IRedisUser>();
+    public static async extractUser(token: string): Promise<JsonResponse<RedisUser>> {
+        const response = new JsonResponse<RedisUser>();
         try {
             const decoded: IPayload = Authenticator.verify(token);
             if (!decoded.sessionId) {

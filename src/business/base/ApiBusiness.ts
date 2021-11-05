@@ -2,7 +2,7 @@ import { Request } from "express";
 import axios, { AxiosResponse, AxiosInstance, AxiosRequestConfig, AxiosError } from "axios";
 import Business from "@business/base/Business";
 import JsonResponse from "@helpers/JsonResponse";
-import { ISearchTerms } from "@interfaces/helpers/SearchTerms";
+import { IRequestTerms, ISearchTerms } from "@interfaces/helpers/SearchTerms";
 import SearchTerms from "@helpers/SearchTerms";
 import Helpers from "@helpers/Helpers";
 import IResponse from "@interfaces/helpers/base/Response";
@@ -43,13 +43,13 @@ export default class ApiBusiness<T = any> extends Business<T> {
         return axios.CancelToken.source();
     }
 
-    public filtersToRequest(terms: ISearchTerms): any {
+    public filtersToRequest(terms: ISearchTerms): IRequestTerms {
         return SearchTerms.toRequest(terms);
     }
 
     public addToken(token: string): this {
         super.addToken(token);
-        this.initRequest({...this._requestOptions, headers: {Authorization: this.authorization }});
+        this._request.defaults.headers.common.Authorization = this.authorization;
         return this;
     }
 
@@ -57,7 +57,7 @@ export default class ApiBusiness<T = any> extends Business<T> {
         super.fromRequest(req);
         if (this.token) {
             // you can also do this with an interceptor
-            this.initRequest({...this._requestOptions, headers: {Authorization: this.authorization }});
+            this._request.defaults.headers.common.Authorization = this.authorization;
         }
         return this;
     }
@@ -74,15 +74,15 @@ export default class ApiBusiness<T = any> extends Business<T> {
      * GET
      * {
      *    method: "GET",
-     *    uri: this.url("/"),
-     *    qs: {}
+     *    url: this.url("/"),
+     *    params: {}
      * }
      *
      * POST
      * {
      *    method: "POST",
-     *    uri: this.url("/"),
-     *    body: {}
+     *    url: this.url("/"),
+     *    data: {}
      * }
      * ```
      * @param opts

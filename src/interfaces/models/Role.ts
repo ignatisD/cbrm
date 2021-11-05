@@ -9,9 +9,8 @@ export interface IRole {
     name: string|IMultilangField;
     slug: string;
     permissions: IPermission[];
-    permissionsNew: {[key: string]: number};
+    permissionMap: {[key: string]: number};
     superAccess: boolean;
-    adminAccess: boolean;
     createdAt?: string|Date;
     updatedAt?: string|Date;
 }
