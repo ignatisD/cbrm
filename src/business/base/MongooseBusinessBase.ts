@@ -3,7 +3,7 @@ import { IPopulate, ISearchTerms } from "@interfaces/helpers/SearchTerms";
 import IPaginatedResults from "@interfaces/helpers/PaginatedResults";
 import { Doc } from "@interfaces/models/base/ModelBase";
 import Business from "@business/base/Business";
-import RepositoryBase from "@repository/base/RepositoryBase";
+import MongooseRepositoryBase from "@repository/base/MongooseRepositoryBase";
 import JsonResponse from "@helpers/JsonResponse";
 import { IBulkWriteOpResultObject } from "@interfaces/helpers/BulkWriteResponse";
 import Holder from "@helpers/Holder";
@@ -16,12 +16,12 @@ import Holder from "@helpers/Holder";
  * This class should be extended pointing to an Interface <T>
  * which denotes the model this business is responsible for
  */
-export default class BusinessBase<T> extends Business<T> implements IBusinessBase<T> {
+export default class MongooseBusinessBase<T> extends Business<T> implements IBusinessBase<T> {
 
     /**
      * The repository linked with this business
      */
-    protected _repo: RepositoryBase;
+    protected _repo: MongooseRepositoryBase;
 
     protected _skipEnrich: boolean = false;
 
@@ -32,7 +32,7 @@ export default class BusinessBase<T> extends Business<T> implements IBusinessBas
      * @param repo
      * @protected
      */
-    protected constructor(repo: RepositoryBase) {
+    protected constructor(repo: MongooseRepositoryBase) {
         super(repo);
     }
 

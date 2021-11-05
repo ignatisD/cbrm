@@ -29,7 +29,7 @@ import IMapping, { IMappingResponse } from "@interfaces/helpers/Mapping";
 import { DeleteByQuery } from "es7/api/requestParams";
 import Helpers from "@helpers/Helpers";
 
-export default class EsRepositoryBase<T extends IEsDoc = any> extends Repository<IEsModel<T>> implements IRepositoryBase<T> {
+export default class ElasticRepositoryBase<T extends IEsDoc = any> extends Repository<IEsModel<T>> implements IRepositoryBase<T> {
 
     protected readonly _client: ElasticClient;
     protected _builder: bodyBuilder.Bodybuilder;

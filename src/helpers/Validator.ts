@@ -1,16 +1,19 @@
-import { body, check, oneOf, Result, ValidationChain, validationResult, param, query } from "express-validator/check";
+import {
+    body,
+    check,
+    oneOf,
+    Result,
+    ValidationChain,
+    validationResult,
+    param,
+    query,
+    ValidationError
+} from "express-validator/check";
 import ResponseError from "@helpers/common/ResponseError";
 import { NextFunction, Request, RequestHandler, Response } from "express";
 import { sanitize, sanitizeBody, sanitizeParam, sanitizeQuery, SanitizationChain } from "express-validator/filter";
 import JsonResponse from "@helpers/JsonResponse";
 
-type ValidationError = {
-    location: string,
-    msg: string,
-    param: string,
-    value?: any,
-    nestedErrors?: any
-};
 /**
  * A Validator class with static methods from express-validator
  */
@@ -183,8 +186,8 @@ export default class Validator {
      * @param {e.Request} req
      * @returns {Result}
      */
-    static result(req: Request): Result {
-        return validationResult(req).formatWith(Validator.errorFormatter);
+    static result(req: Request): Result<ResponseError> {
+        return validationResult(req).formatWith<ResponseError>(Validator.errorFormatter);
     }
 
 }

@@ -1,14 +1,14 @@
-import BusinessBase from "@business/base/BusinessBase";
-import { RepositoryBaseWithDeleted } from "@repository/base/RepositoryBaseWithDeleted";
+import MongooseBusinessBase from "@business/base/MongooseBusinessBase";
+import { MongooseRepositoryBaseWithDeleted } from "@repository/base/MongooseRepositoryBaseWithDeleted";
 import { ISearchTerms } from "@interfaces/helpers/SearchTerms";
 import { Doc } from "@interfaces/models/base/ModelBase";
 import IPaginatedResults from "@interfaces/helpers/PaginatedResults";
 
-export default class BusinessBaseWithDeleted<T> extends BusinessBase<T> {
+export default class MongooseBusinessBaseWithDeleted<T> extends MongooseBusinessBase<T> {
 
-    protected _repo: RepositoryBaseWithDeleted;
+    protected _repo: MongooseRepositoryBaseWithDeleted;
 
-    protected constructor(repo: RepositoryBaseWithDeleted) {
+    protected constructor(repo: MongooseRepositoryBaseWithDeleted) {
         super(repo);
         this._repo = repo;
     }

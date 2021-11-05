@@ -3,19 +3,19 @@ import { ISearchTerms } from "@interfaces/helpers/SearchTerms";
 import { IEsDoc, IEsMappingBody, MappingMode } from "@interfaces/models/base/EsModel";
 import { IEsWriteResponse, RefreshCommand } from "@interfaces/helpers/Elastic";
 import Business from "@business/base/Business";
-import EsRepositoryBase from "@repository/base/EsRepositoryBase";
+import ElasticRepositoryBase from "@repository/base/ElasticRepositoryBase";
 import JsonResponse from "@helpers/JsonResponse";
 import IPaginatedResults from "@interfaces/helpers/PaginatedResults";
 import { IMappingResponse } from "@interfaces/helpers/Mapping";
 import Pagination from "@helpers/Pagination";
 
-export default class EsBusinessBase<T extends IEsDoc> extends Business<T> implements IBusinessBase<T> {
+export default class ElasticBusinessBase<T extends IEsDoc> extends Business<T> implements IBusinessBase<T> {
 
     public took: number = 0;
     public total: number = 0;
-    protected _repo: EsRepositoryBase;
+    protected _repo: ElasticRepositoryBase;
 
-    protected constructor(repo: EsRepositoryBase) {
+    protected constructor(repo: ElasticRepositoryBase) {
         super(repo);
     }
 

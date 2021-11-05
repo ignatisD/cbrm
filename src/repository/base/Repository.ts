@@ -1,7 +1,7 @@
-import { IModel } from "@interfaces/models/base/Model";
-import IRepository from "@interfaces/repository/Repository";
-import IUser from "@interfaces/models/User";
 import { pick } from "lodash";
+import IRepository from "@interfaces/repository/Repository";
+import { IModel } from "@interfaces/models/base/Model";
+import IUser from "@interfaces/models/User";
 
 export default abstract class Repository<T extends IModel> implements IRepository {
 
@@ -17,7 +17,7 @@ export default abstract class Repository<T extends IModel> implements IRepositor
     }
 
     public get modelName() {
-        return this.model.modelName;
+        return this.model?.modelName || "Unknown";
     }
 
     public addUser(user: Partial<IUser>) {

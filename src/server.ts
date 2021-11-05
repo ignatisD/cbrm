@@ -5,7 +5,6 @@ import * as cookieParser from "cookie-parser";
 import * as cors from "cors";
 import * as dotenv from "dotenv";
 import * as express from "express";
-import * as expressValidator from "express-validator";
 import * as fs from "fs";
 import * as helmet from "helmet";
 import * as noCache from "nocache";
@@ -13,16 +12,11 @@ import * as http from "http";
 import * as https from "https";
 import * as i18n from "i18n";
 import * as logger from "morgan";
-import * as mongoose from "mongoose";
-import * as mongooseIntl from "mongoose-intl";
-import realIntl from "@helpers/RealIntl";
-// @ts-ignore
-import * as mongoosePaginate from "mongoose-paginate-v2";
-import * as mongooseAggregatePaginate from "mongoose-aggregate-paginate-v2";
-import * as mongooseSlugUpdater from "mongoose-slug-updater";
 import * as passport from "passport";
 import * as path from "path";
 import * as v8 from "v8";
+
+import MongooseConnector from "@helpers/MongooseConnector";
 
 // Set Language Options
 import { languageOptions } from "@config/language";
@@ -67,6 +61,7 @@ export default class Server {
 
     protected _server: http.Server|https.Server = null;
     protected _dbPromise: Promise<any>;
+    protected _onDisconnect: (() => void)[] = [];
 
     constructor(envFile: string) {
         this.envFile = envFile;
@@ -93,7 +88,8 @@ export default class Server {
 
 
         //connect to database
-        this._dbPromise = this.databaseConnection().then(() => {
+        this._dbPromise = this.databaseConnection().then((result) => {
+            Server.up = typeof result !== "undefined";
             //register business to the global registry (IRS)
             const commonBusiness = require("@business/CommonBusiness").default;
             commonBusiness.registerBusinesses();
@@ -180,34 +176,9 @@ export default class Server {
         // Mongoose schema plugins listeners
         require("events").EventEmitter.defaultMaxListeners = 100;
 
-        mongoose.plugin(mongoosePaginate);
-        mongoose.plugin(mongooseAggregatePaginate);
-        mongoose.plugin(mongooseSlugUpdater);
-        mongoose.plugin(mongooseIntl, {
-            languages: global.languages,
-            defaultLanguage: global.defaultLanguage,
-            fallback: global.fallbackLanguage
-        });
-        mongoose.plugin(realIntl);
-        // Mongoose connect (Promise)
-        return mongoose.connect(this.MongoDbUri, {
-            socketTimeoutMS: 600000
-        }).then(() => {
-                Server.up = true;
-                // PM2 ready signal!
-                process.send = process.send || function () { return false; };
-                process.send("ready");
-                // optional use in development
-                mongoose.set("debug", process.env.MONGODB_DEBUG === "true");
-                // Connection Successful
-                Log.success("Database: " + mongoose.connection.db.databaseName);
-                return mongoose.connection;
-            },
-            err => {
-                Log.exception(err, "MongoDB connection error. Please make sure MongoDB is running.");
-                process.exit();
-                return null;
-            });
+        const connector = new MongooseConnector({uri: this.MongoDbUri});
+        this._onDisconnect.push(connector.onDisconnect.bind(connector));
+        return connector.init();
     }
 
     public express() {
@@ -254,7 +225,6 @@ export default class Server {
         this.app.use(cookieParser());
         this.app.use(bodyParser.json({limit: "50mb"}));
         this.app.use(bodyParser.urlencoded({extended: true}));
-        this.app.use(expressValidator());
         this.app.use(passport.initialize());
         this.app.use("/static", express.static(path.join(__dirname, "../uploads")));
 
@@ -369,13 +339,7 @@ export default class Server {
         });
     }
     public async disconnect() {
-        return mongoose.disconnect()
-        .then(() => {
-            Log.warning("Mongoose disconnect: no errors");
-        })
-        .catch((err) => {
-            Log.error("Mongoose disconnect: ", err);
-        });
+        return Promise.all(this._onDisconnect);
     }
     public async shutdown(term: NodeJS.Signals = "SIGTERM") {
         Log.warning("STOP SERVER: " + term);

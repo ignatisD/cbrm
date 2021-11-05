@@ -1,10 +1,10 @@
 import { Document } from "mongoose";
 import { ISearchTerms } from "@interfaces/helpers/SearchTerms";
-import RepositoryBase from "@repository/base/RepositoryBase";
+import MongooseRepositoryBase from "@repository/base/MongooseRepositoryBase";
 import PaginatedResults from "@interfaces/helpers/PaginatedResults";
 import Pagination from "@helpers/Pagination";
 
-export class RepositoryBaseWithDeleted<T extends Document = any> extends RepositoryBase<T> {
+export class MongooseRepositoryBaseWithDeleted<T extends Document = any> extends MongooseRepositoryBase<T> {
 
     async findByIdWithDeleted(searchTerms: ISearchTerms): Promise<T> {
 
@@ -39,11 +39,11 @@ export class RepositoryBaseWithDeleted<T extends Document = any> extends Reposit
                 await this.countWithDeleted(searchTerms)
             ]);
             return new Pagination()
-                .setResults(results)
-                .setPage(searchTerms.options.page)
-                .setLimit(searchTerms.options.limit)
-                .setTotal(count)
-                .toObject();
+            .setResults(results)
+            .setPage(searchTerms.options.page)
+            .setLimit(searchTerms.options.limit)
+            .setTotal(count)
+            .toObject();
         }
     }
 
@@ -67,19 +67,20 @@ export class RepositoryBaseWithDeleted<T extends Document = any> extends Reposit
     }
 
     async softDelete(_id: string): Promise<boolean> {
-        const query = this.model.delete({ _id: this.toObjectId(_id)});
+        const query = this.model.delete({_id: this.toObjectId(_id)});
         if (this._session) {
             query.session(this._session);
         }
-        const result: {n: number, ok: number} = await query;
+        const result: { n: number, ok: number } = await query;
         return result.n > 0;
     }
+
     async softDeleteOne(filters: any): Promise<boolean> {
         const query = this.model.delete(filters).limit(1);
         if (this._session) {
             query.session(this._session);
         }
-        const result: {n: number, ok: number} = await query;
+        const result: { n: number, ok: number } = await query;
         return result.n > 0;
     }
 
@@ -88,12 +89,12 @@ export class RepositoryBaseWithDeleted<T extends Document = any> extends Reposit
         if (this._session) {
             query.session(this._session);
         }
-        const result: {n: number, ok: number} = await query;
+        const result: { n: number, ok: number } = await query;
         return result.n;
     }
 
     async restore(_id: string): Promise<number> {
-        const result: {n: number, ok: number} = await this.model.restore({_id: this.toObjectId(_id)});
+        const result: { n: number, ok: number } = await this.model.restore({_id: this.toObjectId(_id)});
         return result.n;
     }
 

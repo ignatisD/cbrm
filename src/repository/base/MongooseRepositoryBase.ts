@@ -11,7 +11,7 @@ import SearchTerms from "@helpers/SearchTerms";
 import IRepositoryBase, { ReadPreference } from "@interfaces/repository/RepositoryBase";
 import Helpers from "@helpers/Helpers";
 
-export default class RepositoryBase<T extends mongoose.Document = any> extends Repository<IPaginatable<T>&IDeletable<T>> implements IRepositoryBase<T> {
+export default class MongooseRepositoryBase<T extends mongoose.Document = any> extends Repository<IPaginatable<T>&IDeletable<T>> implements IRepositoryBase<T> {
 
     protected autopopulate: IPopulate[] = [];
     protected _session: mongoose.ClientSession;
