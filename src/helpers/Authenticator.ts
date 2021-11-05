@@ -140,16 +140,16 @@ export default class Authenticator {
     public static userExists(sessionId: string): Promise<JsonResponse<IRedisUser|null>> {
         const response = new JsonResponse();
         return Redis.instance()
-        .get(sessionId)
-        .then((redisUser?: IRedisUser) => {
-            if (redisUser && redisUser._id) {
-                redisUser.sessionId = sessionId;
-                return response.ok(redisUser);
-            }
-            return response.ok(null);
-        }).catch((error: Error) => {
-            return response.exception(error);
-        });
+            .get(sessionId)
+            .then((redisUser?: IRedisUser) => {
+                if (redisUser && redisUser._id) {
+                    redisUser.sessionId = sessionId;
+                    return response.ok(redisUser);
+                }
+                return response.ok(null);
+            }).catch((error: Error) => {
+                return response.exception(error);
+            });
     }
 
     public static verify(token): IPayload {
@@ -212,47 +212,47 @@ export default class Authenticator {
         const ttl: number = durations.ttl;
 
         return Redis.instance()
-        .set(sessionId, redisUser, ttl)
-        .then((result: boolean) => {
-            if (!result) {
-                return response.error("Failed to store token.", null, "Redis");
-            }
-            const tokenResponse = Authenticator.sign(sessionId, tokenDuration, refreshTokenDuration);
-            return response.ok(tokenResponse);
-        }).catch((error: Error) => {
-            return response.exception(error);
-        });
+            .set(sessionId, redisUser, ttl)
+            .then((result: boolean) => {
+                if (!result) {
+                    return response.error("Failed to store token.", null, "Redis");
+                }
+                const tokenResponse = Authenticator.sign(sessionId, tokenDuration, refreshTokenDuration);
+                return response.ok(tokenResponse);
+            }).catch((error: Error) => {
+                return response.exception(error);
+            });
     }
 
     public static update(sessionId: string, user: IUser) {
         const response = new JsonResponse();
         const redisUser: IRedisUser = user;
         return Redis.instance()
-        .update(sessionId, redisUser)
-        .then((result: boolean) => {
-            if (!result) {
-                return response.error("Failed to update token.", null, "Redis");
-            }
-            const tokenResponse = Authenticator.sign(sessionId);
-            return response.ok(tokenResponse);
-        }).catch((error: Error) => {
-            return response.exception(error);
-        });
+            .update(sessionId, redisUser)
+            .then((result: boolean) => {
+                if (!result) {
+                    return response.error("Failed to update token.", null, "Redis");
+                }
+                const tokenResponse = Authenticator.sign(sessionId);
+                return response.ok(tokenResponse);
+            }).catch((error: Error) => {
+                return response.exception(error);
+            });
     }
 
     public static async refresh(sessionId: string): Promise<JsonResponse<ITokenResponse>> {
         const response = new JsonResponse();
         return Redis.instance()
-        .refresh(sessionId)
-        .then((result: boolean) => {
-            if (!result) {
-                return response.error("Failed to refresh token.", null, "Redis");
-            }
-            const tokenResponse = Authenticator.sign(sessionId);
-            return response.ok(tokenResponse);
-        }).catch((error: Error) => {
-            return response.exception(error);
-        });
+            .refresh(sessionId)
+            .then((result: boolean) => {
+                if (!result) {
+                    return response.error("Failed to refresh token.", null, "Redis");
+                }
+                const tokenResponse = Authenticator.sign(sessionId);
+                return response.ok(tokenResponse);
+            }).catch((error: Error) => {
+                return response.exception(error);
+            });
     }
 
     public static async logout(sessionId: string): Promise<JsonResponse<boolean>> {
@@ -261,16 +261,16 @@ export default class Authenticator {
             return response.ok(false);
         }
         return await Redis.instance()
-        .delete(sessionId)
-        .then((number: number) => {
-            if (number === 1) { // key was found
-                return response.ok(true);
-            }
-            return response.ok(false);
-        })
-        .catch((error: Error) => {
-            return response.exception(error);
-        });
+            .delete(sessionId)
+            .then((number: number) => {
+                if (number === 1) { // key was found
+                    return response.ok(true);
+                }
+                return response.ok(false);
+            })
+            .catch((error: Error) => {
+                return response.exception(error);
+            });
     }
 
     public static async extractUser(token: string): Promise<JsonResponse<IRedisUser>> {

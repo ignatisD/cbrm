@@ -52,11 +52,11 @@ export default class MongooseConnector {
 
     public onDisconnect() {
         return disconnect()
-        .then(() => {
-            Log.warning("Mongoose disconnect: no errors");
-        })
-        .catch((err) => {
-            Log.error("Mongoose disconnect: ", err);
-        });
+            .then(() => {
+                Log.warning("Mongoose disconnect: no errors");
+            })
+            .catch((err) => {
+                Log.error("Mongoose disconnect: ", err);
+            });
     }
 }

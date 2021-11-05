@@ -131,8 +131,8 @@ function getOptions(path, typeKey: string) {
  */
 function getType(path) {
     return (path.caster && path.caster.instance
-            ? path.caster.instance
-            : path.instance
+        ? path.caster.instance
+        : path.instance
     ).toLowerCase();
 }
 /**
@@ -142,8 +142,8 @@ function getType(path) {
  */
 function getEnum(path) {
     return (path.caster && path.caster.enumValues
-            ? path.caster.enumValues
-            : []
+        ? path.caster.enumValues
+        : []
     );
 }
 

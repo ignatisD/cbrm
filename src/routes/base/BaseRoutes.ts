@@ -33,7 +33,7 @@ export default class BaseRoutes implements IBaseRoutes {
             // DO NOT REPLACE OR REMOVE THE BELOW COMMENT!!!!!
             // CRUD
 
-// CRUD
+            // CRUD
             // DO NOT REPLACE OR REMOVE THE ABOVE COMMENT!!!!!
         ];
     }

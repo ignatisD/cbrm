@@ -11,12 +11,12 @@
     "scripts": {
         "start": "NODE_OPTIONS=--max_old_space_size=8192 TS_NODE_PROJECT=src/tsconfig.json nodemon src/app.ts",
         "start-prod": "cd dist && ../node_modules/.bin/pm2-runtime process.config.js",
-        "build": "npm run tslint && npm run build-ts",
+        "build": "npm run eslint && npm run build-ts",
         "build-prod": "npm run build && npm run cp-production",
         "reload": "node_modules/.bin/pm2 reload NodeJSApp --update-env",
         "touch": "touch .env",
         "build-ts": "tsc -b src",
-        "tslint": "tslint -c tslint.json -p src/tsconfig.json",
+        "eslint": "eslint -c .eslintrc.js --ext .ts src",
         "cp-locales": "cp -r src/locales dist/",
         "cp-production": "npm run cp-locales && cp process.config.js dist/process.config.js && cp src/tsconfig.json dist/tsconfig.json"
     },
@@ -109,6 +109,8 @@
         "@typescript-eslint/eslint-plugin-tslint": "^5.3.0",
         "@typescript-eslint/parser": "^5.3.0",
         "eslint": "^8.1.0",
+        "eslint-import-resolver-typescript": "^2.5.0",
+        "eslint-plugin-import": "^2.25.2",
         "eslint-plugin-jsdoc": "^37.0.3",
         "eslint-plugin-no-null": "^1.0.2",
         "nodemon": "^2.0.4",

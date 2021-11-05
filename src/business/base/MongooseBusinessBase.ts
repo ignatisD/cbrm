@@ -55,7 +55,7 @@ export default class MongooseBusinessBase<T> extends Business<T> implements IBus
      * @param docs
      * @param options
      */
-    public async insertMany(docs: Partial<T>[], options?: { ordered?: boolean, rawResult?: boolean }): Promise<JsonResponse<T[]>> {
+    public async insertMany(docs: Partial<T>[], options?: { ordered?: boolean; rawResult?: boolean }): Promise<JsonResponse<T[]>> {
         const response = this._response<T[]>();
         try {
             if (!docs || !docs.length) {

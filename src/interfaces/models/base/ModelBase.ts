@@ -7,7 +7,7 @@ export interface IModelBase {
 }
 
 export interface IModelBaseWithUser extends IModelBase {
-   user: Partial<IUser>|string|any;
+    user: Partial<IUser>|string|any;
 }
 
 export interface IDoc<T = any> {

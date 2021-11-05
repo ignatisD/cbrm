@@ -41,7 +41,7 @@ export default class MongooseRepositoryBase<T extends mongoose.Document = any> e
      * @param items
      * @param options
      */
-    async insertMany(items: Partial<T>[], options?: { ordered?: boolean, rawResult?: boolean } & mongoose.InsertManyOptions): Promise<T[]> {
+    async insertMany(items: Partial<T>[], options?: { ordered?: boolean; rawResult?: boolean } & mongoose.InsertManyOptions): Promise<T[]> {
         if (this._session) {
             options = options || {};
             options.session = this._session;

@@ -56,7 +56,7 @@ export interface IHit<T> {
 export interface IBodyHits<T> {
     total: {
         value: number;
-        relation: string
+        relation: string;
     };
     max_score: number;
     hits: IHit<T>[];

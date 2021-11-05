@@ -365,11 +365,11 @@ export default class ElasticRepositoryBase<T extends IEsDoc = any> extends Repos
         const offset = (page - 1) * limit;
         builder = builder ?? this.rebuild();
         builder
-        .size(limit);
+            .size(limit);
 
         if (!terms.scroll) {
             builder
-            .from(offset);
+                .from(offset);
         }
 
         if (terms.projection) {
@@ -414,9 +414,9 @@ export default class ElasticRepositoryBase<T extends IEsDoc = any> extends Repos
         const limit = terms.options.limit || 10000;
         const page = terms.options.page || 1;
         pagination
-        .setLimit(limit)
-        .setPage(page)
-        .setTotal(total);
+            .setLimit(limit)
+            .setPage(page)
+            .setTotal(total);
         hits.forEach((hit: IHit<T>) => {
             const model: T = this.make({_id: hit._id, _index: hit._index, ...hit._source});
             model.id = hit._id;
@@ -637,8 +637,8 @@ export default class ElasticRepositoryBase<T extends IEsDoc = any> extends Repos
     async scroll(terms: ISearchTerms): Promise<JsonResponse<IPaginatedResults<T>>> {
         if (!terms.scroll || !terms.scrollId) {
             return new JsonResponse<IPaginatedResults<T>>().ok(new Pagination())
-            .addError(new ResponseError("ScrollMissing", "Scroll params are required"))
-            .setDebug(terms);
+                .addError(new ResponseError("ScrollMissing", "Scroll params are required"))
+                .setDebug(terms);
         }
         const params = {
             scroll_id: terms.scrollId,

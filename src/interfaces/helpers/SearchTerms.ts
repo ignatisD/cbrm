@@ -40,14 +40,14 @@ export interface ISearchTermsOptions {
     page: number;
     limit: number;
     customLabels?: {
-        docs: string,
-        totalDocs: string,
-        limit: string,
-        page: string,
-        totalPages: string,
-        pagingCounter: string,
-        nextPage: string,
-        prevPage: string,
+        docs: string;
+        totalDocs: string;
+        limit: string;
+        page: string;
+        totalPages: string;
+        pagingCounter: string;
+        nextPage: string;
+        prevPage: string;
     };
 }
 

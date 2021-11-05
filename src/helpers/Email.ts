@@ -116,13 +116,13 @@ export default class Email implements Mail.Options {
         const response = new JsonResponse<EmailResponse>();
 
         return global.Mailer
-        .sendMail(this)
-        .then((res: EmailResponse) => {
-            return response.ok(res);
-        })
-        .catch((err) => {
-            return response.exception(err);
-        });
+            .sendMail(this)
+            .then((res: EmailResponse) => {
+                return response.ok(res);
+            })
+            .catch((err) => {
+                return response.exception(err);
+            });
     }
 
     public sendAws(): Promise<JsonResponse> {

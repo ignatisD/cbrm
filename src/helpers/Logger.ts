@@ -1,6 +1,6 @@
 import * as moment from "moment";
 
-/* tslint:disable */
+/* eslint-disable */
 
 export type Level = "DEBUG"|"INFO"|"ERROR"|"CRITICAL"|"WARNING"|"EMERGENCY"|"SEVERE"|"FATAL";
 
@@ -83,21 +83,21 @@ export default class Logger {
             return;
         }
         let json = JSON.stringify((args.length === 1 ? args[0] : args), null, 4);
-        json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        json = json.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
         json = json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, (match) => {
             const reset = "\x1b[0m";
-            let color = '\x1b[1;36m'; // number -> blue
+            let color = "\x1b[1;36m"; // number -> blue
             if (/^"/.test(match)) {
                 if (/:$/.test(match)) {
-                    match = match.replace(/\"/g, '');
-                    color = '\x1b[1;35m'; // key -> purple
+                    match = match.replace(/\"/g, "");
+                    color = "\x1b[1;35m"; // key -> purple
                 } else {
-                    color = '\x1b[1;32m'; // string -> green
+                    color = "\x1b[1;32m"; // string -> green
                 }
             } else if (/true|false/.test(match)) {
-                color = '\x1b[1;33m'; // boolean -> orange
+                color = "\x1b[1;33m"; // boolean -> orange
             } else if (/null/.test(match)) {
-                color = '\x1b[37m'; // null -> yellow
+                color = "\x1b[37m"; // null -> yellow
             }
             return color + match + reset;
         });
@@ -130,4 +130,4 @@ export default class Logger {
         return false;
     }
 }
-/* tslint:enable */
+/* eslint-enable */

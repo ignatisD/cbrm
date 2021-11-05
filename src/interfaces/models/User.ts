@@ -14,8 +14,8 @@ export default interface IUser {
     activated?: boolean;
 
     provider?: {
-        google?: string,
-        facebook?: string
+        google?: string;
+        facebook?: string;
     };
 
     permissions?: string[];

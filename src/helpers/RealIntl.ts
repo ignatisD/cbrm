@@ -63,49 +63,49 @@ export default function realIntl(schema: any, options: any) {
 
 
         schema.virtual(path)
-        .get(function () {
+            .get(function () {
             // embedded and sub-documents will use language methods from the top level document
-            let owner = this.ownerDocument ? this.ownerDocument() : this,
-                lang = owner.getLanguage(),
-                langSubDoc = (this.$__getValue || this.getValue).call(this, path);
+                let owner = this.ownerDocument ? this.ownerDocument() : this,
+                    lang = owner.getLanguage(),
+                    langSubDoc = (this.$__getValue || this.getValue).call(this, path);
 
-            if (langSubDoc === null || langSubDoc === void 0) {
-                return langSubDoc;
-            }
-
-            if (langSubDoc.hasOwnProperty(lang) && langSubDoc[lang]) {
-                return langSubDoc[lang];
-            }
-
-            if (pluginOptions.fallback && langSubDoc.hasOwnProperty(pluginOptions.fallback)) {
-                return langSubDoc[pluginOptions.fallback];
-            }
-
-            // are there any other languages defined?
-            for (let prop in langSubDoc) {
-                if (langSubDoc.hasOwnProperty(prop)) {
-                    return null; // some other languages exist, but the required is not - return null value
+                if (langSubDoc === null || langSubDoc === void 0) {
+                    return langSubDoc;
                 }
-            }
-            return void 0; // no languages defined - the entire field is undefined
-        })
-        .set(function (value) {
-            // multiple languages are set as an object
-            if (typeof value === "object") {
-                let languages = this.schema.options.mongooseIntl.languages;
-                languages.forEach(function (lang) {
-                    if (!value[lang]) {
-                        return;
-                    }
-                    this.set(path + "." + lang, value[lang]);
-                }, this);
-                return;
-            }
 
-            // embedded and sub-documents will use language methods from the top level document
-            let owner = this.ownerDocument ? this.ownerDocument() : this;
-            this.set(path + "." + owner.getLanguage(), value);
-        });
+                if (langSubDoc.hasOwnProperty(lang) && langSubDoc[lang]) {
+                    return langSubDoc[lang];
+                }
+
+                if (pluginOptions.fallback && langSubDoc.hasOwnProperty(pluginOptions.fallback)) {
+                    return langSubDoc[pluginOptions.fallback];
+                }
+
+                // are there any other languages defined?
+                for (let prop in langSubDoc) {
+                    if (langSubDoc.hasOwnProperty(prop)) {
+                        return null; // some other languages exist, but the required is not - return null value
+                    }
+                }
+                return void 0; // no languages defined - the entire field is undefined
+            })
+            .set(function (value) {
+            // multiple languages are set as an object
+                if (typeof value === "object") {
+                    let languages = this.schema.options.mongooseIntl.languages;
+                    languages.forEach(function (lang) {
+                        if (!value[lang]) {
+                            return;
+                        }
+                        this.set(path + "." + lang, value[lang]);
+                    }, this);
+                    return;
+                }
+
+                // embedded and sub-documents will use language methods from the top level document
+                let owner = this.ownerDocument ? this.ownerDocument() : this;
+                this.set(path + "." + owner.getLanguage(), value);
+            });
 
 
         // intl option is not needed for the current path any more,

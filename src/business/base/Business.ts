@@ -130,10 +130,10 @@ export default abstract class Business<T = any> implements IBusinessLike {
 
     public queue(business: any = this) {
         return new QueuedJob(business)
-        .addSocket(this._socket)
-        .addUser(this._user, this.uniqueId)
-        .addToken(this.token)
-        .setTube(this.tube);
+            .addSocket(this._socket)
+            .addUser(this._user, this.uniqueId)
+            .addToken(this.token)
+            .setTube(this.tube);
     }
 
     /**

@@ -39,11 +39,11 @@ export class MongooseRepositoryBaseWithDeleted<T extends Document = any> extends
                 await this.countWithDeleted(searchTerms)
             ]);
             return new Pagination()
-            .setResults(results)
-            .setPage(searchTerms.options.page)
-            .setLimit(searchTerms.options.limit)
-            .setTotal(count)
-            .toObject();
+                .setResults(results)
+                .setPage(searchTerms.options.page)
+                .setLimit(searchTerms.options.limit)
+                .setTotal(count)
+                .toObject();
         }
     }
 
@@ -71,7 +71,7 @@ export class MongooseRepositoryBaseWithDeleted<T extends Document = any> extends
         if (this._session) {
             query.session(this._session);
         }
-        const result: { n: number, ok: number } = await query;
+        const result: { n: number; ok: number } = await query;
         return result.n > 0;
     }
 
@@ -80,7 +80,7 @@ export class MongooseRepositoryBaseWithDeleted<T extends Document = any> extends
         if (this._session) {
             query.session(this._session);
         }
-        const result: { n: number, ok: number } = await query;
+        const result: { n: number; ok: number } = await query;
         return result.n > 0;
     }
 
@@ -89,12 +89,12 @@ export class MongooseRepositoryBaseWithDeleted<T extends Document = any> extends
         if (this._session) {
             query.session(this._session);
         }
-        const result: { n: number, ok: number } = await query;
+        const result: { n: number; ok: number } = await query;
         return result.n;
     }
 
     async restore(_id: string): Promise<number> {
-        const result: { n: number, ok: number } = await this.model.restore({_id: this.toObjectId(_id)});
+        const result: { n: number; ok: number } = await this.model.restore({_id: this.toObjectId(_id)});
         return result.n;
     }
 

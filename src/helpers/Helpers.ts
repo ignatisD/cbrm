@@ -219,7 +219,7 @@ export default class Helpers {
         return [objOrArray];
     }
 
-    public static requestDetails(req: Request): { ip: string, userAgent: string } {
+    public static requestDetails(req: Request): { ip: string; userAgent: string } {
         let ip: string = req.ip;
         if (ip.substr(0, 7) === "::ffff:") {
             ip = ip.substr(7);
@@ -559,8 +559,8 @@ export default class Helpers {
             });
             const deepPopulate = !!deepPopulates.length;
             const terms = SearchTerms.mimic(st)
-            .setPaging(1, -1)
-            .setFilter(maps[modelBusiness].prop, Object.keys(maps[modelBusiness].ids));
+                .setPaging(1, -1)
+                .setFilter(maps[modelBusiness].prop, Object.keys(maps[modelBusiness].ids));
             if (maps[modelBusiness].filters) {
                 for (let f in maps[modelBusiness].filters) {
                     if (maps[modelBusiness].filters.hasOwnProperty(f)) {

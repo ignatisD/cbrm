@@ -428,8 +428,8 @@ export default class QueuedJob implements IQueuedJob {
             if (job) {
                 await instance.delete(onCompleteKey);
                 const q = new QueuedJob(job.business)
-                .setup(job.method, job.inputs, job.instance !== false)
-                .setApi(job.api || global.API);
+                    .setup(job.method, job.inputs, job.instance !== false)
+                    .setApi(job.api || global.API);
                 if (job.delay) {
                     q.later(job.delay);
                 }

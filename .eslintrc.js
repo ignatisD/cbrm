@@ -17,19 +17,25 @@ module.exports = {
         "es6": true,
         "node": true
     },
+    "settings": {
+        "import/resolver": {
+            "typescript": {}
+        }
+    },
     "parser": "@typescript-eslint/parser",
     "parserOptions": {
-        "project": "tsconfig.json",
+        "project": "src/tsconfig.json",
         "sourceType": "module"
     },
     "plugins": [
         "eslint-plugin-no-null",
         "eslint-plugin-jsdoc",
         "@typescript-eslint",
-        "@typescript-eslint/tslint"
+        "@typescript-eslint/tslint",
+        "import"
     ],
     "rules": {
-        "@typescript-eslint/indent": "error",
+        "@typescript-eslint/indent": "warn",
         "@typescript-eslint/member-delimiter-style": [
             "error",
             {
@@ -43,12 +49,14 @@ module.exports = {
                 }
             }
         ],
-        "@typescript-eslint/naming-convention": "error",
+        "@typescript-eslint/naming-convention": "off",
         "@typescript-eslint/prefer-namespace-keyword": "error",
         "@typescript-eslint/quotes": [
             "error",
+            "double",
             {
-                "avoidEscape": true
+                "avoidEscape": true,
+                "allowTemplateLiterals": true
             }
         ],
         "@typescript-eslint/semi": [
@@ -57,13 +65,13 @@ module.exports = {
         ],
         "@typescript-eslint/type-annotation-spacing": "error",
         "brace-style": [
-            "error",
+            "off",
             "1tbs"
         ],
-        "indent": "error",
-        "jsdoc/check-alignment": "error",
-        "jsdoc/check-indentation": "error",
-        "jsdoc/newline-after-description": "error",
+        "indent": "off",
+        "jsdoc/check-alignment": "off",
+        "jsdoc/check-indentation": "off",
+        "jsdoc/newline-after-description": "off",
         "no-console": [
             "error",
             {
@@ -97,8 +105,8 @@ module.exports = {
         "no-trailing-spaces": "off",
         "no-var": "error",
         "prefer-const": "off",
-        "quotes": "error",
-        "semi": "error",
+        "quotes": "off",
+        "semi": "off",
         "@typescript-eslint/tslint/config": [
             "error",
             {

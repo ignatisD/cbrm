@@ -36,7 +36,7 @@ export interface IEsMapping {
         max_chars?: number;
     };
     index?: boolean;
-    fields?: { [key: string]: IEsMapping; };
+    fields?: { [key: string]: IEsMapping };
     norms?: boolean;
     null_value?: string; // "NULL" : The null_value parameter allows you to replace explicit null values with the specified value
     position_increment_gap?: number;
@@ -97,7 +97,7 @@ export interface IEsMappingBody {
         };
         properties: {
             [key: string]: IEsMapping;
-        }
+        };
     };
 }
 export interface IEsModel<T extends IEsDoc> extends IModel<T> {
