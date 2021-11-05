@@ -1,8 +1,7 @@
-// eslint-disable
 module.exports = {
     "apps" : [
         {
-            "name"        : "NodeJSApp",
+            "name"        : "CBRM",
             "script"      : "app.js",
             "interpreter_args": "-r tsconfig-paths/register --max-old-space-size=8192",
             "exec_mode": "cluster",
@@ -12,4 +11,3 @@ module.exports = {
         }
     ]
 };
-// eslint-enable
