@@ -3,22 +3,26 @@ import * as mongoosePaginate from "mongoose-paginate-v2";
 import * as mongooseAggregatePaginate from "mongoose-aggregate-paginate-v2";
 import * as mongooseSlugUpdater from "mongoose-slug-updater";
 import realIntl from "@helpers/RealIntl";
+import { IConnector } from "@interfaces/helpers/Connector";
+import { Application } from "express";
 
-export default class MongooseConnector {
+export default class MongooseConnector implements IConnector {
 
     protected _uri: string = "mongodb://localhost:27017/test";
     protected _options: ConnectOptions = {
         socketTimeoutMS: 600000
     };
+    protected _db: Promise<any>;
 
-    constructor(opts: { uri: string; options?: ConnectOptions }) {
+    constructor() {
+
+    }
+
+    public init(opts: { uri: string; options?: ConnectOptions }) {
         this._uri = opts.uri;
         if (opts.options) {
             this._options = opts.options;
         }
-    }
-
-    public init() {
         // TODO: add plugin options to activate only required plugins
         plugin(mongoosePaginate);
         plugin(mongooseAggregatePaginate);
@@ -29,7 +33,7 @@ export default class MongooseConnector {
             fallback: global.fallbackLanguage
         });
         // Mongoose connect (Promise)
-        return connect(this._uri, this._options).then(
+        this._db = connect(this._uri, this._options).then(
             // On Success
             (instance) => {
                 // PM2 ready signal!
@@ -48,6 +52,11 @@ export default class MongooseConnector {
                 return undefined;
             }
         );
+        return this._db;
+    }
+
+    public onAppReady(app?: Application) {
+        return this._db;
     }
 
     public onDisconnect() {

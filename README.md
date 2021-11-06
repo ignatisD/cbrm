@@ -7,6 +7,7 @@ A NodeJS framework
 ###### TODO
 - [x] Replace `request-promise` with `axios`
 - [x] Fix `mongoose-intl`
-- [X] Replace `tslint` with `eslint`
-- [ ] Add `parse` connector ([parse-server](https://github.com/parse-community/parse-server))
+- [x] Replace `tslint` with `eslint`
+- [x] Add `parse` connector ([parse-server](https://github.com/parse-community/parse-server))
+- [ ] Add `parse` repository
 - [ ] Test `bull` and `bull-board` and maybe replace them with `bullmq` and `tashforce`

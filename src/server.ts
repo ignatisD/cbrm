@@ -16,7 +16,7 @@ import * as passport from "passport";
 import * as path from "path";
 import * as v8 from "v8";
 
-import MongooseConnector from "@helpers/MongooseConnector";
+import MongooseConnector from "@helpers/connectors/MongooseConnector";
 
 // Set Language Options
 import { languageOptions } from "@config/language";
@@ -36,6 +36,7 @@ import Helpers from "@helpers/Helpers";
 import { Agent } from "elastic-apm-node";
 import { IMailerOptions, Mailer } from "@config/mailer";
 import Queue from "@config/queues";
+import { IConnector } from "@interfaces/helpers/Connector";
 
 /**
  * Our Server class
@@ -50,7 +51,6 @@ export default class Server {
     // Keep Sorted By Variable Name
     public app: express.Application;
     public CorsUrls: any;
-    public MongoDbUri: any;
     public Port: any;
     public ServerName: any;
     public UseSSL: boolean;
@@ -61,13 +61,14 @@ export default class Server {
 
     protected _server: http.Server|https.Server = null;
     protected _dbPromise: Promise<any>;
-    protected _onDisconnect: (() => void)[] = [];
+    protected _connector: IConnector;
+    protected _onDisconnect: Promise<void>[] = [];
 
     constructor(envFile: string) {
         this.envFile = envFile;
     }
 
-    public static bootstrap(envFile: string = ".env"): Server {
+    public static bootstrap(envFile: string = ".env"): Promise<Server> {
         return new Server(envFile).init();
     }
 
@@ -78,7 +79,7 @@ export default class Server {
         return server;
     }
 
-    public init() {
+    public async init() {
 
         //load env variables
         this.env();
@@ -99,7 +100,7 @@ export default class Server {
         this.app = express();
 
         // Express configuration.
-        this.express();
+        await this.express();
 
         //create server
         this.createServer();
@@ -115,7 +116,6 @@ export default class Server {
         global.buildNumber = process.env.BUILD || "build-dev";
 
         this.CorsUrls = (process.env.CORS_URLS || "*").split(",");
-        this.MongoDbUri = process.env.MONGODB_URI;
         this.Port = process.env.NODE_PORT || 3000;
         this.ServerName = process.env.SERVER_NAME || "localhost";
         this.UseSSL = process.env.USE_SSL === "true";
@@ -127,7 +127,7 @@ export default class Server {
     }
 
     public config() {
-
+        require("events").EventEmitter.defaultMaxListeners = 100;
         const mailOptions: IMailerOptions = {
             host: process.env.SMTP_HOST,
             port: process.env.SMTP_PORT ? parseInt(process.env.SMTP_PORT) : 465
@@ -173,15 +173,11 @@ export default class Server {
     }
 
     public databaseConnection() {
-        // Mongoose schema plugins listeners
-        require("events").EventEmitter.defaultMaxListeners = 100;
-
-        const connector = new MongooseConnector({uri: this.MongoDbUri});
-        this._onDisconnect.push(connector.onDisconnect.bind(connector));
-        return connector.init();
+        this._connector = new MongooseConnector();
+        return this._connector.init({uri: process.env.MONGODB_URI});
     }
 
-    public express() {
+    public async express() {
 
         // Initialize Authenticator
         const secret = process.env.SECRET_OR_KEY || "01A10A01A10A01A10A01A10A";
@@ -204,7 +200,6 @@ export default class Server {
             }
         ));
 
-        this.bootstrapWorkers();
         this.app.use(helmet());
         this.app.use(noCache());
         this.app.use(cors({
@@ -247,10 +242,15 @@ export default class Server {
             next();
         });
 
+        if (this._connector) {
+            await this._connector.onAppReady(this.app);
+        }
+        this.bootstrapWorkers();
+
         // Global RenderHTML fro pug templates
         global.renderHTML = Helpers.renderHTML(this.app);
 
-        //add Api routes
+        // Add Api routes
         const BaseRoutes = require("@routes/base/BaseRoutes").default;
         this.app.use(new BaseRoutes().register());
 
@@ -339,7 +339,10 @@ export default class Server {
         });
     }
     public async disconnect() {
-        return Promise.all(this._onDisconnect);
+        if (this._connector) {
+            await this._connector.onDisconnect();
+        }
+        return Promise.resolve();
     }
     public async shutdown(term: NodeJS.Signals = "SIGTERM") {
         Log.warning("STOP SERVER: " + term);
