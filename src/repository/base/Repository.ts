@@ -6,10 +6,12 @@ import IUser from "@interfaces/models/User";
 export default abstract class Repository<T extends IModel> implements IRepository {
 
     protected _user: Partial<IUser>;
+    protected _modelName: string;
     protected readonly _model: T;
 
     protected constructor(model: T) {
         this._model = model;
+        this._modelName = this.model?.modelName || this.model?.className || "Unknown";
     }
 
     public get model(): T {
@@ -17,7 +19,7 @@ export default abstract class Repository<T extends IModel> implements IRepositor
     }
 
     public get modelName() {
-        return this.model?.modelName || "Unknown";
+        return this._modelName;
     }
 
     public addUser(user: Partial<IUser>) {
@@ -32,4 +34,7 @@ export default abstract class Repository<T extends IModel> implements IRepositor
         };
     }
 
+    public emptyPaginatedResults(docs: any[] = []) {
+        return {docs: docs, limit: -1, total: docs.length, page: 1, pages: 1, offset: 0, hasNextPage: false, hasPrevPage: false, pagingCounter: 1};
+    }
 }

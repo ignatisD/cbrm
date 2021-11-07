@@ -4,7 +4,7 @@ import MongooseRepositoryBase from "@repository/base/MongooseRepositoryBase";
 import PaginatedResults from "@interfaces/helpers/PaginatedResults";
 import Pagination from "@helpers/Pagination";
 
-export class MongooseRepositoryBaseWithDeleted<T extends Document = any> extends MongooseRepositoryBase<T> {
+export default abstract class MongooseRepositoryBaseWithDeleted<T extends Document = any> extends MongooseRepositoryBase<T> {
 
     async findByIdWithDeleted(searchTerms: ISearchTerms): Promise<T> {
 

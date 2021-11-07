@@ -1,5 +1,5 @@
 import MongooseBusinessBase from "@business/base/MongooseBusinessBase";
-import { MongooseRepositoryBaseWithDeleted } from "@repository/base/MongooseRepositoryBaseWithDeleted";
+import MongooseRepositoryBaseWithDeleted from "@repository/base/MongooseRepositoryBaseWithDeleted";
 import { ISearchTerms } from "@interfaces/helpers/SearchTerms";
 import { Doc } from "@interfaces/models/base/ModelBase";
 import IPaginatedResults from "@interfaces/helpers/PaginatedResults";

@@ -50,10 +50,10 @@ export default class Server {
     static up: boolean = false;
     // Keep Sorted By Variable Name
     public app: express.Application;
-    public CorsUrls: any;
-    public Port: any;
-    public ServerName: any;
-    public UseSSL: boolean;
+    public cors: any;
+    public port: any;
+    public serverName: any;
+    public useSSL: boolean;
     public sslDir: string;
 
     private readonly envFile: string;
@@ -62,7 +62,6 @@ export default class Server {
     protected _server: http.Server|https.Server = null;
     protected _dbPromise: Promise<any>;
     protected _connector: IConnector;
-    protected _onDisconnect: Promise<void>[] = [];
 
     constructor(envFile: string) {
         this.envFile = envFile;
@@ -115,10 +114,10 @@ export default class Server {
         global.prefix = process.env.PREFIX || "dev";
         global.buildNumber = process.env.BUILD || "build-dev";
 
-        this.CorsUrls = (process.env.CORS_URLS || "*").split(",");
-        this.Port = process.env.NODE_PORT || 3000;
-        this.ServerName = process.env.SERVER_NAME || "localhost";
-        this.UseSSL = process.env.USE_SSL === "true";
+        this.cors = (process.env.CORS_URLS || "*").split(",");
+        this.port = process.env.NODE_PORT || 3000;
+        this.serverName = process.env.SERVER_NAME || "localhost";
+        this.useSSL = process.env.USE_SSL === "true";
         this.sslDir = process.env.SSL_DIR || "/etc/ssl";
 
         global.isDevMode = process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test";
@@ -184,7 +183,7 @@ export default class Server {
         this.app.use(new Authenticator(secret).initialize());
 
         // Express configuration.
-        this.app.set("port", this.Port);
+        this.app.set("port", this.port);
         this.app.set("views", path.join(__dirname, "../views"));
         this.app.set("view engine", "pug");
         this.app.set("etag", false);
@@ -203,7 +202,7 @@ export default class Server {
         this.app.use(helmet());
         this.app.use(noCache());
         this.app.use(cors({
-            origin: (origin, cb) => cb(null, this.CorsUrls.includes("*") || this.CorsUrls.includes(origin)),
+            origin: (origin, cb) => cb(null, this.cors.includes("*") || this.cors.includes(origin)),
             credentials: true,
             exposedHeaders: [
                 "x-build-number"
@@ -274,7 +273,7 @@ export default class Server {
         // SSL Check
         const sslKey = path.join(this.sslDir, "server.key.pem");
         const sslCert = path.join(this.sslDir, "server.crt.pem");
-        if (this.UseSSL && fs.existsSync(sslKey) && fs.existsSync(sslCert)) {
+        if (this.useSSL && fs.existsSync(sslKey) && fs.existsSync(sslCert)) {
             const sslOptions = {
                 key: fs.readFileSync(sslKey),
                 cert: fs.readFileSync(sslCert),
@@ -291,7 +290,7 @@ export default class Server {
         this._server.timeout = 600000;
 
         this._server.on("listening", () => {
-            Log.success(`  App is running at http://${global.API}:${this.Port} in ${process.env.NODE_ENV} mode`);
+            Log.success(`  App is running at http://${global.API}:${this.port} in ${process.env.NODE_ENV} mode`);
             Log.debug("  Press CTRL+C to stop");
         });
 

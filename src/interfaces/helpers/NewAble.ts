@@ -1,3 +1,3 @@
 export interface NewAble<T = any> {
-    new(props?: Partial<T>): T;
+    new(...args: any[]): T;
 }

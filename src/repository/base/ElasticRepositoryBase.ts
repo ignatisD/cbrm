@@ -29,14 +29,14 @@ import IMapping, { IMappingResponse } from "@interfaces/helpers/Mapping";
 import { DeleteByQuery } from "es7/api/requestParams";
 import Helpers from "@helpers/Helpers";
 
-export default class ElasticRepositoryBase<T extends IEsDoc = any> extends Repository<IEsModel<T>> implements IRepositoryBase<T> {
+export default abstract class ElasticRepositoryBase<T extends IEsDoc = any> extends Repository<IEsModel<T>> implements IRepositoryBase<T> {
 
     protected readonly _client: ElasticClient;
     protected _builder: bodyBuilder.Bodybuilder;
     protected _took: number;
     protected _active: string = "active";
 
-    constructor(modelFactory: IEsModel<T>) {
+    protected constructor(modelFactory: IEsModel<T>) {
         super(modelFactory);
         this._client = ElasticClient.instance;
         this.rebuild();
