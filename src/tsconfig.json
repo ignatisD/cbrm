@@ -11,7 +11,7 @@
         "allowSyntheticDefaultImports": true,
         "typeRoots": [
             "../node_modules/@types",
-            "./config/types"
+            "./interfaces/types"
         ],
         "paths": {
             "@interfaces/*": ["interfaces/*"],

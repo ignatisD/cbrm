@@ -15,7 +15,7 @@ import { NewAble } from "@interfaces/helpers/NewAble";
 import JsonResponse from "@helpers/JsonResponse";
 import NotificationMailer from "@mailers/NotificationMailer";
 import QueuedJob from "@helpers/QueuedJob";
-import Sockets from "@config/sockets";
+import Sockets from "@config/Sockets";
 import SearchTerms from "@helpers/SearchTerms";
 import { Tube, Tubes } from "@helpers/Tubes";
 import Helpers from "@helpers/Helpers";

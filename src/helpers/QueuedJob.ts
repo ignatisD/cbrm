@@ -3,7 +3,7 @@ import { CronJob } from "cron";
 import cronstrue from "cronstrue";
 import { IJobData, IQueuedJob } from "@interfaces/common/QueuedJob";
 import { pick } from "lodash";
-import Queue from "@config/queues";
+import Queue from "@config/Queue";
 import { Tubes, Tube } from "@helpers/Tubes";
 import JsonResponse from "@helpers/JsonResponse";
 import IUser from "@interfaces/models/User";

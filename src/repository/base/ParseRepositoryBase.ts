@@ -3,6 +3,7 @@ import Repository from "@repository/base/Repository";
 import IRepositoryBase from "@interfaces/repository/RepositoryBase";
 import { IPopulate, ISearchTerms } from "@interfaces/helpers/SearchTerms";
 import IPaginatedResults from "@interfaces/helpers/PaginatedResults";
+import { Query } from "parse";
 
 export default abstract class ParseRepositoryBase<T = any> extends Repository<Parse.ObjectConstructor> implements IRepositoryBase<T> {
 
@@ -15,7 +16,7 @@ export default abstract class ParseRepositoryBase<T = any> extends Repository<Pa
         Log.debug(this.modelName);
     }
 
-    protected _query() {
+    public query() {
         return new Parse.Query<Parse.Object<T>>(this.model);
     }
 
@@ -59,4 +60,8 @@ export default abstract class ParseRepositoryBase<T = any> extends Repository<Pa
     updateMany: (params: any, props?: any) => Promise<any>;
     deleteOne: (params: any) => Promise<any>;
     deleteMany: (params: any) => Promise<any>;
+
+    aggregate<V = any>(pipeline: Query.AggregationOptions | Query.AggregationOptions[]): Promise<V> {
+        return Promise.resolve(null);
+    }
 }

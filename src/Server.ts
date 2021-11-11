@@ -19,7 +19,7 @@ import * as v8 from "v8";
 import MongooseConnector from "@helpers/connectors/MongooseConnector";
 
 // Set Language Options
-import { languageOptions } from "@config/language";
+import { languageOptions } from "@config/languageOptions";
 global.languages = languageOptions.locales;
 global.requiredLanguages = languageOptions.requiredLanguages;
 global.defaultLanguage = languageOptions.defaultLocale;
@@ -34,9 +34,9 @@ global.Log = Logger;
 import Authenticator from "@helpers/Authenticator";
 import Helpers from "@helpers/Helpers";
 import { Agent } from "elastic-apm-node";
-import { IMailerOptions, Mailer } from "@config/mailer";
-import Queue from "@config/queues";
+import { IMailerOptions, Mailer } from "@config/Mailer";
 import { IConnector } from "@interfaces/helpers/Connector";
+import Queue from "@config/Queue";
 
 /**
  * Our Server class

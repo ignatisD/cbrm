@@ -34,8 +34,9 @@ export default class Logger {
     }
 
     private _log(...args: any): void {
+        const log = this._level === "ERROR" ? console.trace : console.log;
         const timeStamp = "[" + moment().format("YYYY-MM-DD[T]HH:mm:ss.SSS[Z]") + "] ";
-        console.log(timeStamp + `\x1b[${this._color}m`, ...args, `\x1b[8m[~]${this._level}${Logger._end}\x1b[0m`);
+        log(timeStamp + `\x1b[${this._color}m`, ...args, `\x1b[8m[~]${this._level}${Logger._end}\x1b[0m`);
     }
 
     /** @see Log.log */

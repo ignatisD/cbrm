@@ -20,7 +20,7 @@ import {
 import { ApiResponse, RequestParams } from "es7";
 import { IFilter, ISearchTerms } from "@interfaces/helpers/SearchTerms";
 import Repository from "@repository/base/Repository";
-import ElasticClient from "@config/elastic";
+import ElasticClient from "@config/ElasticClient";
 import JsonResponse from "@helpers/JsonResponse";
 import Pagination from "@helpers/Pagination";
 import ResponseError from "@helpers/common/ResponseError";
