@@ -5,10 +5,14 @@ import IRoute from "@interfaces/common/Route";
 import JsonResponse from "@helpers/JsonResponse";
 import Route from "@routes/base/Route";
 import { PermissionLevel } from "@interfaces/models/Role";
+import IController from "@interfaces/controllers/base/Controller";
+import CommonBusiness from "@business/CommonBusiness";
+import { IBusinessRegistry } from "@interfaces/business/BusinessLike";
+import CommonRoutes from "@routes/CommonRoutes";
 
 // Routes
 
-export default class BaseRoutes implements IBaseRoutes {
+export default class BaseRoutes implements IBaseRoutes, IController<CommonBusiness> {
 
     public routes(): IRoute[] {
         return [
@@ -30,6 +34,11 @@ export default class BaseRoutes implements IBaseRoutes {
                     model: "Route"
                 }
             },
+            {
+                name: "Common Routes",
+                path: "/common",
+                routes: new CommonRoutes().routes()
+            }
             // DO NOT REPLACE OR REMOVE THE BELOW COMMENT!!!!!
             // CRUD
 
@@ -54,6 +63,13 @@ export default class BaseRoutes implements IBaseRoutes {
         });
 
         return router;
+    }
+
+    public registry(): IBusinessRegistry<CommonBusiness> {
+        return {
+            name: "CommonBusiness",
+            business: CommonBusiness
+        };
     }
 
     public getRoutes(req: Request, res: Response) {

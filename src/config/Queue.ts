@@ -1,5 +1,9 @@
+import { Application } from "express";
+import * as IORedis from "ioredis";
 import * as Bull from "bull";
-
+const { createBullBoard } = require("@bull-board/api");
+const { BullAdapter } = require("@bull-board/api/bullAdapter");
+const { ExpressAdapter } = require("@bull-board/express");
 import { Tube, Tubes } from "@helpers/Tubes";
 import { IJobData } from "@interfaces/common/QueuedJob";
 import ResponseError from "@helpers/common/ResponseError";
@@ -40,13 +44,33 @@ export default class Queue {
         return `${api}_${tube}`;
     }
 
-    public static bootstrap() {
+    public static bootstrap(app?: Application) {
         if (Queue.ready) {
             return;
         }
+        const redisOptions: IORedis.RedisOptions = {
+            ...global.Redis,
+            maxRetriesPerRequest: null,
+            enableReadyCheck: false,
+        };
         Queue.options = {
             prefix: this.prefix,
-            redis: global.Redis
+            redis: redisOptions,
+            settings: {
+                lockDuration: 50000,
+                lockRenewTime: 25000,  // = lockDuration / 2,
+                stalledInterval: 50000, // = lockDuration
+                maxStalledCount: 2, // The maximum number of times a job can be recovered from the 'stalled' state
+            },
+            createClient(type: "client" | "subscriber" | "bclient", redisOpts?: IORedis.RedisOptions): IORedis.Redis | IORedis.Cluster {
+                switch (type) {
+                    case "client":
+                    case "subscriber":
+                    case "bclient":
+                    default:
+                        return new IORedis(redisOptions);
+                }
+            }
         };
         const allTubes: Tube[] = [Tubes.SOLO, Tubes.LAZY, Tubes.NORMAL, Tubes.QUICK];
         let queueName;
@@ -54,6 +78,19 @@ export default class Queue {
             queueName = Queue.getTube(tube);
             Queue.queues[queueName] = new Bull(queueName, Queue.options);
         }
+        if (app) {
+            const serverAdapter = new ExpressAdapter();
+            serverAdapter.setBasePath("/job-api/");
+            createBullBoard({
+                queues: Object.values(Queue.queues).map(q => {
+                    return new BullAdapter(q);
+                }),
+                serverAdapter,
+            });
+            app.use("/job-api/", serverAdapter.getRouter());
+            Log.info("Bull board up and running...");
+        }
+        Queue.ready = true;
         return Queue.singleton;
     }
 

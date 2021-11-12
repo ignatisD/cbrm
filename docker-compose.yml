@@ -20,4 +20,14 @@ services:
         published: 3000
         target: 3000
 
+  redis:
+    image: redis:6
+    ports:
+      - mode: host
+        protocol: tcp
+        published: 6379
+        target: 6379
+
+  mailhog:
+    image: mailhog/mailhog
 

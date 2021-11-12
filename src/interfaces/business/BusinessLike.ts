@@ -27,3 +27,8 @@ export default interface IBusinessLike {
     progress: (percentage: number) => any;
     addTransaction: (session: any) => void;
 }
+
+export interface IBusinessRegistry<T extends IBusinessLike> {
+    name: string;
+    business: new() => T;
+}

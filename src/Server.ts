@@ -91,8 +91,8 @@ export default class Server {
         this._dbPromise = this.databaseConnection().then((result) => {
             Server.up = typeof result !== "undefined";
             //register business to the global registry (IRS)
-            const commonBusiness = require("@business/CommonBusiness").default;
-            commonBusiness.registerBusinesses();
+            // const commonBusiness = require("@business/CommonBusiness").default;
+            // commonBusiness.registerBusinesses();
         });
 
         //create express application
@@ -121,7 +121,8 @@ export default class Server {
         this.sslDir = process.env.SSL_DIR || "/etc/ssl";
 
         global.isDevMode = process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test";
-
+        global.isWorker = global.isDevMode || process.env.NODE_ENV === "worker";
+        global.isMainWorker = global.isDevMode || process.env.NODE_TYPE === "main-worker";
         global.API = "cbrm";
     }
 
@@ -169,6 +170,8 @@ export default class Server {
 
         // Initialize Languages
         i18n.configure(languageOptions);
+
+        global.businessRegistry = {};
     }
 
     public databaseConnection() {
@@ -198,7 +201,7 @@ export default class Server {
                 }
             }
         ));
-
+        this.bootstrapWorkers();
         this.app.use(helmet());
         this.app.use(noCache());
         this.app.use(cors({
@@ -214,7 +217,9 @@ export default class Server {
         const COMBINEDAPACHELOG = ":real_ip - :remote-user [:date[clf]] \":method :url HTTP/:http-version\" :status :res[content-length] \":referrer\" \":user-agent\"";
         this.app.use(compression());
         this.app.use(logger(process.env.MORGAN_FORMAT === "combined" ? COMBINEDAPACHELOG : "dev", {
-            skip: function (req, res) { return res.statusCode < 400 && res.statusCode !== 401; }
+            skip: function (req, res) {
+                return res.statusCode < 400 && res.statusCode !== 401;
+            }
         }));
         this.app.use(cookieParser());
         this.app.use(bodyParser.json({limit: "50mb"}));
@@ -244,10 +249,11 @@ export default class Server {
         if (this._connector) {
             await this._connector.onAppReady(this.app);
         }
-        this.bootstrapWorkers();
 
         // Global RenderHTML fro pug templates
         global.renderHTML = Helpers.renderHTML(this.app);
+
+        await this._dbPromise;
 
         // Add Api routes
         const BaseRoutes = require("@routes/base/BaseRoutes").default;
@@ -257,6 +263,7 @@ export default class Server {
             // Add the Elastic APM middleware after your regular middleware
             this.app.use(this.apm.middleware.connect());
         }
+        this.workersListen();
     }
 
     public createServer() {
@@ -313,9 +320,12 @@ export default class Server {
         }
     }
 
-    public async bootstrapWorkers() {
+    public bootstrapWorkers() {
         Log.debug("Starting queues");
-        Queue.bootstrap();
+        Queue.bootstrap(global.isMainWorker ? this.app : null);
+    }
+
+    public async workersListen() {
         if (global.isWorker) {
             await this._dbPromise;
             Queue.workersListen();

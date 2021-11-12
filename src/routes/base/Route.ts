@@ -43,6 +43,12 @@ export default class Route implements IRoute {
         try {
             let actualPath = path.join(parentPath, this.path);
             if (this.ctrl && this.method) {
+                if ("registry" in this.ctrl) {
+                    const registry = this.ctrl.registry();
+                    if (registry?.name && !global.businessRegistry.hasOwnProperty(registry.name)) {
+                        global.businessRegistry[registry.name] = registry.business;
+                    }
+                }
                 if (this.permission > PermissionLevel.NONE) {
                     // @ts-ignore
                     this.pre(Authenticator.allow({level: this.permission, model: this.permissionsConfig?.model || this.ctrl?.model}));
