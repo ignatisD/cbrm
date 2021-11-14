@@ -140,7 +140,7 @@
             [
                 "@semantic-release/npm",
                 {
-                    "pkgRoot": "lib",
+                    "pkgRoot": ".",
                     "tarballDir": "release"
                 }
             ],
