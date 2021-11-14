@@ -1,5 +1,5 @@
-import Validator from "@helpers/Validator";
-import IValidatorBase, { IValidationChain } from "@interfaces/validators/ValidatorBase";
+import Validator from "../helpers/Validator";
+import IValidatorBase, { IValidationChain } from "../interfaces/validators/ValidatorBase";
 import { RequestHandler } from "express";
 
 export default class ValidatorBase implements IValidatorBase {
@@ -29,7 +29,7 @@ export default class ValidatorBase implements IValidatorBase {
 
     get updateRequired(): RequestHandler[]|any[] {
         return [
-            Validator.check("_id").isMongoId(),
+            Validator.check("_id").exists(),
             ...this._validations,
             Validator.resultOfValidation
         ];

@@ -24,14 +24,13 @@ module.exports = {
     },
     "parser": "@typescript-eslint/parser",
     "parserOptions": {
-        "project": "src/tsconfig.json",
+        "project": "tsconfig.json",
         "sourceType": "module"
     },
     "plugins": [
         "eslint-plugin-no-null",
         "eslint-plugin-jsdoc",
         "@typescript-eslint",
-        "@typescript-eslint/tslint",
         "import"
     ],
     "rules": {
@@ -106,22 +105,6 @@ module.exports = {
         "no-var": "error",
         "prefer-const": "off",
         "quotes": "off",
-        "semi": "off",
-        "@typescript-eslint/tslint/config": [
-            "error",
-            {
-                "rules": {
-                    "whitespace": [
-                        true,
-                        "check-branch",
-                        "check-decl",
-                        "check-operator",
-                        "check-module",
-                        "check-separator",
-                        "check-type"
-                    ]
-                }
-            }
-        ]
+        "semi": "off"
     }
 };

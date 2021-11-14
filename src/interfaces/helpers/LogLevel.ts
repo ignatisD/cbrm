@@ -1,0 +1,1 @@
+export type LogLevel = "DEBUG"|"INFO"|"ERROR"|"CRITICAL"|"WARNING"|"EMERGENCY"|"SEVERE"|"FATAL";

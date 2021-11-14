@@ -18,3 +18,9 @@ export interface IMappingResponse {
     mapping: IMapping;
     translations?: any;
 }
+
+export enum MappingMode {
+    ALL = 0,
+    MAPPING = 1,
+    TEMPLATE = 2
+}

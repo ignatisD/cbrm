@@ -1,11 +1,11 @@
 import * as moment from "moment";
-import Email from "@helpers/Email";
+import Email from "../helpers/Email";
 import Mail from "nodemailer/lib/mailer";
-import INotification from "@interfaces/helpers/Notification";
-import JsonResponse from "@helpers/JsonResponse";
-import { INotifier } from "@interfaces/helpers/Notifier";
-import { EmailResponse } from "@interfaces/helpers/Email";
-import Helpers from "@helpers/Helpers";
+import INotification from "../interfaces/helpers/Notification";
+import JsonResponse from "../helpers/JsonResponse";
+import { INotifier } from "../interfaces/helpers/Notifier";
+import { EmailResponse } from "../interfaces/helpers/EmailResponse";
+import Helpers from "../helpers/Helpers";
 
 export default class NotificationMailer extends Email implements INotifier {
     private _basePath = global.ViewsRoot + "/";

@@ -1,27 +1,21 @@
-import { createHash } from "crypto";
 import * as moment from "moment";
+import juice from "juice";
+import { createHash } from "crypto";
 import { performance } from "perf_hooks";
 import { Request, Application } from "express";
 import { Types } from "mongoose";
 import { uniq } from "lodash";
-// Interfaces
-import IBusinessBase from "@interfaces/business/BusinessBase";
-import { IPopulate, ISearchTerms } from "@interfaces/helpers/SearchTerms";
-// Helpers
-import ResponseError from "@helpers/common/ResponseError";
-import SearchTerms from "@helpers/SearchTerms";
-import { Doc } from "@interfaces/models/base/ModelBase";
 import { URL } from "url";
 import { renderFile } from "pug";
-import juice from "juice";
+// Interfaces
+import IBusinessBase from "../interfaces/business/BusinessBase";
+import { IPopulate, IQuery } from "../interfaces/helpers/Query";
+// Helpers
+import ResponseError from "./ResponseError";
+import Query from "./Query";
+import { Doc } from "../interfaces/models/Document";
 
 export default class Helpers {
-    public static get userAgent(): string {
-        return "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.114 Safari/537.36";
-    }
-    public static get defaultKey(): string {
-        return "data";
-    }
 
     public static requestException(e: any) {
         delete e.options;
@@ -52,11 +46,7 @@ export default class Helpers {
     }
 
     public static multilangField (field: string): string[] {
-        return global.languages.map(lng => `${field}.${lng}`);
-    }
-
-    public static isMongoId(_id: string): boolean {
-        return Types.ObjectId.isValid(_id);
+        return global.languages?.map(lng => `${field}.${lng}`);
     }
 
     static elapsed(started: number): string {
@@ -277,6 +267,7 @@ export default class Helpers {
             return false;
         }
     }
+
     public static htmlspecialchars_decode(string, quoteStyle?) {
         let optTemp = 0;
         let i = 0;
@@ -474,15 +465,15 @@ export default class Helpers {
         });
     }
 
-    public static async populate<T>(docs: T[], st: ISearchTerms): Promise<T[]>;
-    public static async populate<T>(docs: T, st: ISearchTerms): Promise<T>;
-    public static async populate<T>(docs: T[] | T, st: ISearchTerms) {
+    public static async populate<T>(docs: T[], st: IQuery): Promise<T[]>;
+    public static async populate<T>(docs: T, st: IQuery): Promise<T>;
+    public static async populate<T>(docs: T[] | T, st: IQuery) {
         let onlyOne = false;
         if (!Array.isArray(docs)) {
             docs = [docs];
             onlyOne = true;
         }
-        const populates = <IPopulate[]>(SearchTerms.fromScratch().populate(st?.options?.populate || []).options.populate);
+        const populates = <IPopulate[]>(Query.fromScratch().populate(st?.options?.populate || []).options.populate);
         if (!docs || !docs.length || !populates?.length) {
             return onlyOne ? docs[0] : docs;
         }
@@ -558,7 +549,7 @@ export default class Helpers {
                 popArray.forEach((p) => deepPopulates.push(p));
             });
             const deepPopulate = !!deepPopulates.length;
-            const terms = SearchTerms.mimic(st)
+            const terms = Query.mimic(st)
                 .setPaging(1, -1)
                 .setFilter(maps[modelBusiness].prop, Object.keys(maps[modelBusiness].ids));
             if (maps[modelBusiness].filters) {

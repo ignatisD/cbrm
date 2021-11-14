@@ -6,5 +6,3 @@ export enum Tubes {
     NORMAL = "NORMAL",
     QUICK = "QUICK"
 }
-
-export type Tube = keyof typeof Tubes;

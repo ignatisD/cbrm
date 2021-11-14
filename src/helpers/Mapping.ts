@@ -1,4 +1,5 @@
-import IMapping, { IMappingProperty } from "@interfaces/helpers/Mapping";
+import IMapping, { IMappingProperty } from "../interfaces/helpers/Mapping";
+
 /**
  * Generate mapping
  * @param {Object} schema - mongoose schema

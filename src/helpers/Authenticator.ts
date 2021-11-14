@@ -7,13 +7,13 @@ import * as PassportGoogle from "passport-google-token";
 import * as jwt from "jsonwebtoken";
 import * as uuid from "uuid";
 // Interfaces
-import IBusinessBase from "@interfaces/business/BusinessBase";
-import IUser, { RedisUser } from "@interfaces/models/User";
-import { IPayload, ITokenDurations, ITokenResponse } from "@interfaces/common/Payload";
+import IBusinessBase from "../interfaces/business/BusinessBase";
+import IUser, { RedisUser } from "../interfaces/models/User";
+import { IPayload, ITokenDurations, ITokenResponse } from "../interfaces/helpers/Payload";
 // Helpers
-import Redis from "@helpers/Redis";
-import ResponseError from "@helpers/common/ResponseError";
-import JsonResponse from "@helpers/JsonResponse";
+import Redis from "./Redis";
+import ResponseError from "./ResponseError";
+import JsonResponse from "./JsonResponse";
 
 export enum AuthError {
     TokenError = "TokenError",
@@ -301,9 +301,9 @@ export default class Authenticator {
 
     public static checkForUser() {
         return async (req: express.Request, res: express.Response, next: express.NextFunction) => {
-            const token = req.header("authorization");
-            if (token) {
-                req.user = await Authenticator.extractUserFromToken(token.replace("Bearer ", ""));
+            const authorization = req.header("authorization");
+            if (authorization) {
+                req.user = await Authenticator.extractUserFromToken(authorization.replace("Bearer ", ""));
             }
             next();
         };

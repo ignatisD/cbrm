@@ -1,18 +1,18 @@
 import { Job } from "bull";
 import { Request } from "express";
-import INotification from "@interfaces/helpers/Notification";
-import { Tube } from "@helpers/Tubes";
-import { IRequestMetadata } from "@interfaces/helpers/SearchTerms";
+import INotification from "../helpers/Notification";
+import { IRequestMetadata } from "../helpers/Query";
 
 export default interface IBusinessLike {
     debug: any;
     modelName: string;
     uniqueId: string;
     job: Job;
-    tube: Tube;
-    nextTube: Tube;
+    tube: string;
+    nextTube: string;
     token: string;
     locale: string;
+    user: any;
     meta?: IRequestMetadata;
     addToken: (token: string) => this;
     addMeta: (token: IRequestMetadata) => this;
@@ -23,9 +23,9 @@ export default interface IBusinessLike {
     setLocale: (locale: string) => this;
     fromRequest: (req?: Request) => this;
     notifyUser: (notification: INotification) => this;
-    businessUser: any;
     progress: (percentage: number) => any;
     addTransaction: (session: any) => void;
+    exception: (...args: any) => void;
 }
 
 export interface IBusinessRegistry<T extends IBusinessLike> {

@@ -1,5 +1,5 @@
-import IUser from "@interfaces/models/User";
-import { Level } from "@helpers/Logger";
+import IUser from "../models/User";
+import { LogLevel } from "./LogLevel";
 
 export interface INotificationAction {
     title: string;
@@ -27,7 +27,7 @@ export interface IWebNotification {
 }
 
 export default interface INotification extends IWebNotification {
-    type?: Level; // For color
+    type?: LogLevel; // For color
     took?: number;
     email?: boolean;
     emailPath?: string;
