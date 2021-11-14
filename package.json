@@ -10,9 +10,6 @@
     "license": "MIT",
     "scripts": {
         "start": "NODE_OPTIONS=--max_old_space_size=8192 nodemon src/index.ts",
-        "start-prod": "../node_modules/.bin/pm2-runtime process.config.js",
-        "touch": "touch .env",
-        "reload": "node_modules/.bin/pm2 reload NodeJSApp --update-env",
         "build": "tsc -b tsconfig.json",
         "test": "npm run eslint",
         "eslint": "eslint -c .eslintrc.js --ext .ts src",
@@ -81,7 +78,6 @@
         "passport-google-token": "^0.1.2",
         "passport-jwt": "^4.0.0",
         "passport-local": "^1.0.0",
-        "pm2": "^5.1.2",
         "pug": "^3.0.2",
         "uuid": "^8.0.0"
     },
