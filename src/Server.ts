@@ -38,7 +38,7 @@ import { IServerConfiguration } from "./helpers/ServerConfiguration";
  */
 export default class Server {
 
-    private static authenticator: typeof Authenticator = null;
+    protected static authenticator: typeof Authenticator = null;
     static up: boolean = false;
     // Keep Sorted By Variable Name
     public app: express.Application;

@@ -9,7 +9,7 @@ import Helpers from "../helpers/Helpers";
 import Logger from "../helpers/Logger";
 
 export default class NotificationMailer extends Email implements INotifier {
-    private _basePath = global.ViewsRoot + "/";
+    protected _basePath = global.ViewsRoot + "/";
     constructor(opts?: Mail.Options) {
         super(opts);
     }
