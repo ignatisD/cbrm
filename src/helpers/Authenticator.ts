@@ -14,6 +14,7 @@ import { IPayload, ITokenDurations, ITokenResponse } from "../interfaces/helpers
 import Redis from "./Redis";
 import ResponseError from "./ResponseError";
 import JsonResponse from "./JsonResponse";
+import Logger from "./Logger";
 
 export enum AuthError {
     TokenError = "TokenError",
@@ -289,7 +290,7 @@ export default class Authenticator {
             }
             return response.ok(redisUser, "user");
         } catch (e) {
-            Log.exception(e);
+            Logger.exception(e);
             return response.exception(e);
         }
     }

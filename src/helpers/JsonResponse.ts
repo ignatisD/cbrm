@@ -1,6 +1,7 @@
 import IResponse from "../interfaces/helpers/Response";
 import IError from "../interfaces/helpers/Error";
 import ResponseError from "./ResponseError";
+import Logger from "./Logger";
 
 /**
  * A quick access to a standardized Json Response
@@ -196,7 +197,7 @@ export default class JsonResponse<T = any> implements IResponse {
         this.success = false;
         let err: IError = error ? new ResponseError("Warning", error, details) : JsonResponse.responseError;
         this.addError(err);
-        Log.warning(error, details);
+        Logger.warning(error, details);
         return this;
     }
 

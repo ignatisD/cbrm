@@ -5,10 +5,8 @@ import IRoute from "../interfaces/helpers/Route";
 import { PermissionLevel } from "../interfaces/models/Permission";
 import JsonResponse from "../helpers/JsonResponse";
 import Route from "../helpers/Route";
-import ApplicationBusiness from "../business/ApplicationBusiness";
 import Controller from "./Controller";
-
-// Routes
+import ApplicationBusiness from "../business/ApplicationBusiness";
 
 export default class ApplicationController extends Controller<ApplicationBusiness> implements IAppRoutes {
 

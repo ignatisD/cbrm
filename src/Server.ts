@@ -21,7 +21,6 @@ import IRoute from "./interfaces/helpers/Route";
 
 // Set Logger
 import Logger from "./helpers/Logger";
-global.Log = Logger;
 
 
 // Modules | Keep Sorted By Variable Name
@@ -101,12 +100,16 @@ export default class Server {
         this.app.use(i18n.init);
     }
 
+    public getApplicationController() {
+        return require("./controllers/ApplicationController").default;
+    }
+
     public registerRoutes() {
         // Welcome
         const router = express.Router();
 
         // external route template
-        const ApplicationController = require("@controllers/ApplicationController").default;
+        const ApplicationController = this.getApplicationController();
         new ApplicationController().routes().forEach((_route: IRoute) => {
             const route = new Route(_route, Server.authenticator);
             route.register(router);
@@ -128,7 +131,7 @@ export default class Server {
     }
 
     public bootstrapWorkers() {
-        Log.debug("Starting queues");
+        Logger.debug("Starting queues");
         Queue.bootstrap(global.isMainWorker ? this.app : null);
     }
 
@@ -136,7 +139,7 @@ export default class Server {
         if (global.isWorker) {
             await this._dbPromise;
             Queue.workersListen();
-            Log.success("Workers are listening");
+            Logger.success("Workers are listening");
         }
     }
 
@@ -155,9 +158,9 @@ export default class Server {
         //connect to database
         this._dbPromise = this.databaseConnection().then((result) => {
             Server.up = typeof result !== "undefined";
-            Log.success("Database connection successful");
+            Logger.success("Database connection successful");
         }).catch((e) => {
-            Log.exception(e);
+            Logger.exception(e);
             process.exit(1);
         });
 
@@ -212,7 +215,7 @@ export default class Server {
         global.ServerRoot = path.resolve(__dirname);
         global.ViewsRoot = path.join(__dirname, "../views");
         global.pagingLimit = 100;
-        Log.setStatics(process.env.DEBUG !== "false", `${process.env.NODE_ENV}@${process.env.HOSTNAME}`);
+        Logger.setStatics(process.env.DEBUG !== "false", `${process.env.NODE_ENV}@${process.env.HOSTNAME}`);
 
         // Initialize Languages
 
@@ -309,11 +312,11 @@ export default class Server {
         // Logs
         const totalHeapSizeInKB = (((v8.getHeapStatistics().total_available_size) / 1024).toFixed(2));
         const totalHeapSizeInGB = (((v8.getHeapStatistics().total_available_size) / 1024 / 1024 / 1024).toFixed(2));
-        Log.debug(`*******************************************`);
-        Log.debug(`Total Heap Size ~${totalHeapSizeInKB}KB`);
-        Log.debug(`Total Heap Size ~${totalHeapSizeInGB}GB`);
-        Log.debug(`*******************************************`);
-        Log.debug("Path of file in parent dir:", path.resolve(__dirname, "server.ts"));
+        Logger.debug(`*******************************************`);
+        Logger.debug(`Total Heap Size ~${totalHeapSizeInKB}KB`);
+        Logger.debug(`Total Heap Size ~${totalHeapSizeInGB}GB`);
+        Logger.debug(`*******************************************`);
+        Logger.debug("Path of file in parent dir:", path.resolve(__dirname, "server.ts"));
 
         // SSL Check
         const sslKey = path.join(this.sslDir, "server.key.pem");
@@ -335,14 +338,14 @@ export default class Server {
         this._server.timeout = this.serverTimeout;
 
         this._server.on("listening", () => {
-            Log.success(`  App is running at http://${global.API}:${this.port} in ${process.env.NODE_ENV} mode`);
-            Log.debug("  Press CTRL+C to stop");
+            Logger.success(`  App is running at http://${global.API}:${this.port} in ${process.env.NODE_ENV} mode`);
+            Logger.debug("  Press CTRL+C to stop");
         });
 
-        this._server.on("error", Log.error);
+        this._server.on("error", Logger.error);
 
         process.on("exit", (code) => {
-            Log.warning("Process exiting with code:", code);
+            Logger.warning("Process exiting with code:", code);
         });
 
         if (process.env.NODE_ENV !== "development") {
@@ -353,7 +356,7 @@ export default class Server {
             process.on("SIGUSR2", this.shutdown.bind(this));
         } else {
             process.on("warning", (warning) => {
-                Log.pretty(warning.stack?.split("\n"));
+                Logger.pretty(warning.stack?.split("\n"));
             });
         }
     }
@@ -364,9 +367,9 @@ export default class Server {
             this._server.close((err) => {
                 clearTimeout(timeout);
                 if (err) {
-                    Log.error("Express stopped: ", err);
+                    Logger.error("Express stopped: ", err);
                 } else {
-                    Log.warning("Express stopped: no errors");
+                    Logger.warning("Express stopped: no errors");
                 }
                 resolve();
             });
@@ -379,7 +382,7 @@ export default class Server {
         return Promise.resolve();
     }
     public async shutdown(term: NodeJS.Signals = "SIGTERM") {
-        Log.warning("STOP SERVER: " + term);
+        Logger.warning("STOP SERVER: " + term);
         try {
             Server.up = false;
             await this.close();
@@ -387,7 +390,7 @@ export default class Server {
             await this.disconnect();
             process.exit(0);
         } catch (e) {
-            Log.exception(e, {source: "Server.shutdown"});
+            Logger.exception(e, {source: "Server.shutdown"});
             process.exit(1);
         }
     }

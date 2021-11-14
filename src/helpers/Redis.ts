@@ -1,6 +1,7 @@
 import * as IORedis from "ioredis";
 import { reduce } from "lodash";
 import * as uuid from "uuid";
+import Logger from "./Logger";
 
 /**
  * A helper class proxying a subset of the available commands of the Redis database
@@ -35,7 +36,7 @@ export default class Redis {
         options.prefix = this._prefix;
         this._client = new IORedis(options);
         this._client.on("error" , (err) => {
-            Log.error("RedisError: " + err);
+            Logger.error("RedisError: " + err);
         });
     }
 
@@ -103,7 +104,7 @@ export default class Redis {
             const keys = await this._client.keys(this._prefix + pattern);
             return keys.map(key => key.replace(this._prefix, ""));
         } catch (e) {
-            Log.exception(e);
+            Logger.exception(e);
             return [];
         }
     }

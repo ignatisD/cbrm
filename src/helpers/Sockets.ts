@@ -1,4 +1,5 @@
 import INotification from "../interfaces/helpers/Notification";
+import Logger from "./Logger";
 
 export default class Sockets {
 
@@ -8,6 +9,6 @@ export default class Sockets {
 
     public static notify(channel: string, notification: INotification): void {
         // notify
-        Log.info(channel, notification);
+        Logger.info(channel, notification);
     }
 }

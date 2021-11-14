@@ -4,6 +4,7 @@ import IBusinessLike, { IBusinessRegistry } from "../interfaces/business/Busines
 import IController from "../interfaces/controllers/Controller";
 import IUser from "../interfaces/models/User";
 import IError from "../interfaces/helpers/Error";
+import Logger from "../helpers/Logger";
 
 export default abstract class Controller<T extends IBusinessLike> implements IController<T> {
     protected _business: new() => T;
@@ -41,7 +42,7 @@ export default abstract class Controller<T extends IBusinessLike> implements ICo
     }
 
     public exception(req: Request, e: IError, method?: string, details?: any): void {
-        Log.exception(e, {
+        Logger.exception(e, {
             method: method,
             ...this.reqUser(req),
             details

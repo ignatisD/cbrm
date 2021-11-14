@@ -6,6 +6,7 @@ import IRoute from "../interfaces/helpers/Route";
 import IController from "../interfaces/controllers/Controller";
 import { IPermissionsConfig, PermissionLevel } from "../interfaces/models/Permission";
 import Authenticator from "./Authenticator";
+import Logger from "./Logger";
 
 export default class Route implements IRoute {
 
@@ -80,8 +81,8 @@ export default class Route implements IRoute {
                 router.all(actualPath, ...this.middlewares, proxy(this.proxy, this.proxyOptions));
             }
         } catch (err) {
-            Log.exception(err, {source: "Route.register"});
-            Log.warning(data);
+            Logger.exception(err, {source: "Route.register"});
+            Logger.warning(data);
         }
     }
 

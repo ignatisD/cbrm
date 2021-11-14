@@ -6,6 +6,7 @@ import { IPopulate, IQuery } from "../interfaces/helpers/Query";
 import JsonResponse from "../helpers/JsonResponse";
 import Query from "../helpers/Query";
 import Controller from "../controllers/Controller";
+import Logger from "../helpers/Logger";
 
 export default abstract class ControllerBase<C extends IBusinessBase> extends Controller<C> implements IControllerBase {
 
@@ -23,7 +24,7 @@ export default abstract class ControllerBase<C extends IBusinessBase> extends Co
             const data = await this.business(req).retrieve(searchTerms);
             res.json(new JsonResponse().ok(data, this._namePlural));
         } catch (e)  {
-            Log.exception(e, this.reqUser(req));
+            Logger.exception(e, this.reqUser(req));
             res.status(500).json(new JsonResponse().exception(e));
         }
     }
@@ -33,7 +34,7 @@ export default abstract class ControllerBase<C extends IBusinessBase> extends Co
             const response = await this.business(req).create(req.body);
             res.json(response);
         } catch (e)  {
-            Log.exception(e, this.reqUser(req));
+            Logger.exception(e, this.reqUser(req));
             res.status(500).json(new JsonResponse().exception(e));
         }
     }
@@ -43,7 +44,7 @@ export default abstract class ControllerBase<C extends IBusinessBase> extends Co
             const response = await this.business(req).createMany(req.body);
             res.json(response);
         } catch (e)  {
-            Log.exception(e, this.reqUser(req));
+            Logger.exception(e, this.reqUser(req));
             res.status(500).json(new JsonResponse().exception(e));
         }
     }
@@ -55,7 +56,7 @@ export default abstract class ControllerBase<C extends IBusinessBase> extends Co
             const data = await this.business(req).find(searchTerms);
             res.json(new JsonResponse().ok(data, this._name));
         } catch (e)  {
-            Log.exception(e, this.reqUser(req));
+            Logger.exception(e, this.reqUser(req));
             res.status(500).json(new JsonResponse().exception(e));
         }
     }
@@ -67,7 +68,7 @@ export default abstract class ControllerBase<C extends IBusinessBase> extends Co
             const data = await this.business(req).findById(searchTerms);
             res.json(new JsonResponse().ok(data, this._name));
         } catch (e)  {
-            Log.exception(e, this.reqUser(req));
+            Logger.exception(e, this.reqUser(req));
             res.status(500).json(new JsonResponse().exception(e));
         }
     }
@@ -79,7 +80,7 @@ export default abstract class ControllerBase<C extends IBusinessBase> extends Co
             const data = await this.business(req).findOne(searchTerms);
             res.json(new JsonResponse().ok(data, this._name));
         } catch (e)  {
-            Log.exception(e, this.reqUser(req));
+            Logger.exception(e, this.reqUser(req));
             res.status(500).json(new JsonResponse().exception(e));
         }
     }
@@ -89,7 +90,7 @@ export default abstract class ControllerBase<C extends IBusinessBase> extends Co
             const response = await this.business(req).update(req.params._id, req.body);
             res.json(response);
         } catch (e)  {
-            Log.exception(e, this.reqUser(req));
+            Logger.exception(e, this.reqUser(req));
             res.status(500).json(new JsonResponse().exception(e));
         }
     }
@@ -99,7 +100,7 @@ export default abstract class ControllerBase<C extends IBusinessBase> extends Co
             const response = await this.business(req).updateManyWithDifferentValues(req.body);
             res.json(response);
         } catch (e)  {
-            Log.exception(e, this.reqUser(req));
+            Logger.exception(e, this.reqUser(req));
             res.status(500).json(new JsonResponse().exception(e));
         }
     }
@@ -112,7 +113,7 @@ export default abstract class ControllerBase<C extends IBusinessBase> extends Co
             const response = await this.business(req).updateMany(searchTerms, props);
             res.json(response);
         } catch (e)  {
-            Log.exception(e, this.reqUser(req));
+            Logger.exception(e, this.reqUser(req));
             res.status(500).json(new JsonResponse().exception(e));
         }
     }
@@ -123,7 +124,7 @@ export default abstract class ControllerBase<C extends IBusinessBase> extends Co
             const result: boolean = await this.business(req).delete(req.params._id, !req.query.force);
             res.json(response.ok(result, "deleted"));
         } catch (e)  {
-            Log.exception(e, this.reqUser(req));
+            Logger.exception(e, this.reqUser(req));
             res.status(500).json(response.exception(e));
         }
     }
@@ -134,7 +135,7 @@ export default abstract class ControllerBase<C extends IBusinessBase> extends Co
             const data = await this.business(req).deleteMany(searchTerms);
             res.json(new JsonResponse().ok(data, this._namePlural));
         } catch (e)  {
-            Log.exception(e, this.reqUser(req));
+            Logger.exception(e, this.reqUser(req));
             res.status(500).json(new JsonResponse().exception(e));
         }
     }
@@ -146,7 +147,7 @@ export default abstract class ControllerBase<C extends IBusinessBase> extends Co
             const result: number = await this.business(req).deleteMany(searchTerms);
             res.json(response.ok(result, "deleted"));
         } catch (e)  {
-            Log.exception(e, this.reqUser(req));
+            Logger.exception(e, this.reqUser(req));
             res.status(500).json(response.exception(e));
         }
     }
@@ -160,7 +161,7 @@ export default abstract class ControllerBase<C extends IBusinessBase> extends Co
             const response = await this.business(req).duplicate(searchTerms);
             res.json(new JsonResponse().ok(response, this._name));
         } catch (e)  {
-            Log.exception(e, this.reqUser(req));
+            Logger.exception(e, this.reqUser(req));
             res.status(500).json(new JsonResponse().exception(e));
         }
     }
@@ -170,7 +171,7 @@ export default abstract class ControllerBase<C extends IBusinessBase> extends Co
             const data = await this.business(req).restore(req.params._id);
             res.json(new JsonResponse().ok(data, this._name));
         } catch (e)  {
-            Log.exception(e, this.reqUser(req));
+            Logger.exception(e, this.reqUser(req));
             res.status(500).json(new JsonResponse().exception(e));
         }
     }
@@ -180,7 +181,7 @@ export default abstract class ControllerBase<C extends IBusinessBase> extends Co
             const data = this.business(req).getMapping();
             res.json(new JsonResponse().ok(data, this._name));
         } catch (e)  {
-            Log.exception(e, this.reqUser(req));
+            Logger.exception(e, this.reqUser(req));
             res.status(500).json(new JsonResponse().exception(e));
         }
     }
@@ -191,7 +192,7 @@ export default abstract class ControllerBase<C extends IBusinessBase> extends Co
             const data = await this.business(req).count(searchTerms);
             res.json(new JsonResponse().ok(data, this._namePlural));
         } catch (e)  {
-            Log.exception(e, this.reqUser(req));
+            Logger.exception(e, this.reqUser(req));
             res.status(500).json(new JsonResponse().exception(e));
         }
     }
@@ -208,7 +209,7 @@ export default abstract class ControllerBase<C extends IBusinessBase> extends Co
             const response = await this.business(req).ensureMapping(mode);
             res.json(response);
         } catch (e) {
-            Log.exception(e, this.reqUser(req));
+            Logger.exception(e, this.reqUser(req));
             res.status(500).json(JsonResponse.caught(e));
         }
     }
