@@ -85,6 +85,7 @@
         "uuid": "^8.0.0"
     },
     "devDependencies": {
+        "@semantic-release/github": "^8.0.2",
         "@types/body-parser": "^1.19.0",
         "@types/bull": "^3.13.0",
         "@types/compression": "1.7.0",
@@ -113,7 +114,39 @@
         "eslint-plugin-jsdoc": "^37.0.3",
         "eslint-plugin-no-null": "^1.0.2",
         "nodemon": "^2.0.4",
+        "semantic-release": "^18.0.0",
         "ts-node": "^5.0.1",
         "typescript": "^4.4"
+    },
+    "publishConfig": {
+        "access": "public",
+        "branches": [
+            "master"
+        ]
+    },
+    "release": {
+        "branches": [
+            "master"
+        ],
+        "plugins": [
+            "@semantic-release/commit-analyzer",
+            "@semantic-release/release-notes-generator",
+            [
+                "@semantic-release/npm",
+                {
+                    "assets": [
+                        "lib/**"
+                    ]
+                }
+            ],
+            [
+                "@semantic-release/github",
+                {
+                    "assets": [
+                        "lib/**"
+                    ]
+                }
+            ]
+        ]
     }
 }
