@@ -14,6 +14,7 @@ import { IPopulate, IQuery } from "../interfaces/helpers/Query";
 import ResponseError from "./ResponseError";
 import Query from "./Query";
 import { Doc } from "../interfaces/models/Document";
+import Logger from "./Logger";
 
 export default class Helpers {
 
@@ -250,8 +251,8 @@ export default class Helpers {
             }
             return Types.ObjectId.createFromHexString(_id);
         } catch (e) {
-            Log.error("toObjectId: ", _id);
-            Log.exception(e);
+            Logger.error("toObjectId: ", _id);
+            Logger.exception(e);
             return _id;
         }
     }

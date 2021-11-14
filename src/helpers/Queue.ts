@@ -12,6 +12,7 @@ import JsonResponse from "./JsonResponse";
 import QueuedJob from "./QueuedJob";
 import ResponseError from "./ResponseError";
 import { Tubes } from "./Tubes";
+import Logger from "./Logger";
 
 export default class Queue {
 
@@ -90,7 +91,7 @@ export default class Queue {
                 serverAdapter,
             });
             app.use("/job-api/", serverAdapter.getRouter());
-            Log.info("Bull board up and running...");
+            Logger.info("Bull board up and running...");
         }
         Queue.ready = true;
         return Queue.singleton;
@@ -115,7 +116,7 @@ export default class Queue {
         Queue.LAZY.pause(isLocal);
         Queue.NORMAL.pause(isLocal);
         Queue.QUICK.pause(isLocal);
-        Log.warning(`Stopping Workers: ${process.env.HOSTNAME}`);
+        Logger.warning(`Stopping Workers: ${process.env.HOSTNAME}`);
         return response.ok([
             Queue.SOLO.name,
             Queue.LAZY.name,
@@ -131,7 +132,7 @@ export default class Queue {
         Queue.LAZY.resume(isLocal);
         Queue.NORMAL.resume(isLocal);
         Queue.QUICK.resume(isLocal);
-        Log.warning(`Starting ${isLocal ? "local" : "all"} Workers: ${process.env.HOSTNAME}`);
+        Logger.warning(`Starting ${isLocal ? "local" : "all"} Workers: ${process.env.HOSTNAME}`);
         return response.ok([
             Queue.SOLO.name,
             Queue.LAZY.name,
@@ -198,19 +199,19 @@ export default class Queue {
             const socket = data.socket;
             const token = data.token;
             if (!method || !businessName) {
-                Log.error(`MethodAndBusinessRequired: ${method}@${businessName}`);
+                Logger.error(`MethodAndBusinessRequired: ${method}@${businessName}`);
                 done(new ResponseError("MethodAndBusinessRequired", `Business and business method are required for background processes.`), data);
                 return;
             }
             const BusinessClass = global.businessRegistry[businessName];
             if (!BusinessClass) {
-                Log.error(`BusinessNotFound: ${businessName}`);
+                Logger.error(`BusinessNotFound: ${businessName}`);
                 done(new ResponseError("BusinessNotFound", `Business '${businessName}' was not found`), data);
                 return;
             }
             const business: IBusinessLike = instance ? new BusinessClass() : BusinessClass; // static or instance
             if (!business || !(method in business)) {
-                Log.error(`MethodNotFound: ${method} in business: ${businessName}`);
+                Logger.error(`MethodNotFound: ${method} in business: ${businessName}`);
                 done(new ResponseError("MethodNotFound", `'${method}' was not found in ${businessName}`), data);
                 return;
             }
@@ -236,7 +237,7 @@ export default class Queue {
             }
             done(null, result);
         } catch (e) {
-            Log.exception(e, {custom: {business: businessName, method: method, email: user?.email}});
+            Logger.exception(e, {custom: {business: businessName, method: method, email: user?.email}});
             done(e, data);
         }
     }

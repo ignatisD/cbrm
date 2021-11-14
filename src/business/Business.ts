@@ -20,6 +20,7 @@ import Query from "../helpers/Query";
 import { Tubes } from "../helpers/Tubes";
 import Helpers from "../helpers/Helpers";
 import IError from "../interfaces/helpers/Error";
+import Logger from "../helpers/Logger";
 
 export default abstract class Business<T = any> implements IBusinessLike {
 
@@ -82,7 +83,7 @@ export default abstract class Business<T = any> implements IBusinessLike {
     }
 
     public exception(e: IError, method?: string, details?: any, skipAPM?: boolean): void {
-        Log.exception(e, {
+        Logger.exception(e, {
             business: this.constructor?.name,
             method: method,
             user: pick(this._user, ["_id", "fullName", "firstName", "lastName", "email"]),
@@ -91,7 +92,7 @@ export default abstract class Business<T = any> implements IBusinessLike {
     }
 
     public warning(warning: string, method?: string, details?: any): void {
-        Log.warning(warning, {
+        Logger.warning(warning, {
             business: this.constructor?.name,
             method: method,
             user: pick(this._user, ["_id", "fullName", "firstName", "lastName", "email"]),
@@ -261,7 +262,7 @@ export default abstract class Business<T = any> implements IBusinessLike {
         const heap = Math.round((final - this._heap) * 100) / 100;
         const message = `The script used approximately ${heap} MB of memory in ${elapsed}`;
         if (log) {
-            Log.debug(message);
+            Logger.debug(message);
         }
         return {
             time: elapsed,

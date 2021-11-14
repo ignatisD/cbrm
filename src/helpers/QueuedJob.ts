@@ -11,6 +11,7 @@ import Queue from "./Queue";
 import { Tubes } from "./Tubes";
 import JsonResponse from "./JsonResponse";
 import Redis from "./Redis";
+import Logger from "./Logger";
 
 export default class QueuedJob implements IQueuedJob {
     public business: string;
@@ -222,7 +223,7 @@ export default class QueuedJob implements IQueuedJob {
             }
             return response.ok(`Operation '${this.method}' of business '${this.business}' will be completed in the background`, "message");
         } catch (e) {
-            Log.exception(e);
+            Logger.exception(e);
             return response.exception(e);
         }
     }
@@ -280,7 +281,6 @@ export default class QueuedJob implements IQueuedJob {
             const notificationKey = this.getKey(uniqueId, "notification");
 
             const counter: number = await instance.incr(counterKey);
-            // Log.success(`${uniqueId} => ${counter}`);
             const expire = instance.expire(counterKey, this.ttl);
             if (notification && notification.title) {
                 const n: INotification|null = await instance.get(notificationKey);
@@ -297,7 +297,7 @@ export default class QueuedJob implements IQueuedJob {
             await expire;
             return counter;
         } catch (e) {
-            Log.exception(e);
+            Logger.exception(e);
             return -1;
         }
     }
@@ -420,7 +420,6 @@ export default class QueuedJob implements IQueuedJob {
             const errorKey = this.getKey(uniqueId, "errors");
 
             const counter: number = await instance.decr(counterKey);
-            // Log.warning(`${uniqueId} => ${counter}`);
             if (counter !== 0) {
                 return counter;
             }

@@ -56,17 +56,17 @@ export const languageOptions: i18n.ConfigurationOptions & ExtraLanguageOptions =
 
     // setting of log level DEBUG - default to require("debug")("i18n:debug")
     // logDebugFn: function (msg) {
-    //     Log.log("debug", msg);
+    //     Logger.log("debug", msg);
     // },
 
     // setting of log level WARN - default to require("debug")("i18n:warn")
     // logWarnFn: function (msg) {
-    //     Log.log("warn", msg);
+    //     Logger.log("warn", msg);
     // },
 
     // setting of log level ERROR - default to require("debug")("i18n:error")
     // logErrorFn: function (msg) {
-    //     Log.log("error", msg);
+    //     Logger.log("error", msg);
     // },
 
     // object or [obj1, obj2] to bind the i18n api and current locale to - defaults to null

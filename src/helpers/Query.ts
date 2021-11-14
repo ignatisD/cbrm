@@ -10,6 +10,7 @@ import {
 } from "../interfaces/helpers/Query";
 import Helpers from "./Helpers";
 import { ReadPreference } from "../interfaces/helpers/ReadPreference";
+import Logger from "./Logger";
 
 export default class Query implements IQuery {
 
@@ -238,7 +239,7 @@ export default class Query implements IQuery {
                     filter.value.push(secondTerms);
                 }
             } catch (e) {
-                Log.exception(e, {source: "SearchTerms.handleFilter"});
+                Logger.exception(e, {source: "SearchTerms.handleFilter"});
                 filter.value = value;
             }
         } else {
@@ -379,7 +380,7 @@ export default class Query implements IQuery {
                 }
                 if (aKey.indexOf(prefixed) === 0) {
                     delete projection[bKey];
-                    Log.warning(`SearchTerms.fixProjection: ${bKey} is contained in ${aKey}`);
+                    Logger.warning(`SearchTerms.fixProjection: ${bKey} is contained in ${aKey}`);
                     break;
                 }
             }

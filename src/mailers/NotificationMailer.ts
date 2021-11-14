@@ -6,6 +6,7 @@ import JsonResponse from "../helpers/JsonResponse";
 import { INotifier } from "../interfaces/helpers/Notifier";
 import { EmailResponse } from "../interfaces/helpers/EmailResponse";
 import Helpers from "../helpers/Helpers";
+import Logger from "../helpers/Logger";
 
 export default class NotificationMailer extends Email implements INotifier {
     private _basePath = global.ViewsRoot + "/";
@@ -17,7 +18,7 @@ export default class NotificationMailer extends Email implements INotifier {
         const response = new JsonResponse<EmailResponse>();
         try {
             if (!notification.user?.email && !notification.recipients?.length) {
-                Log.error("Notification user not found or no email given", {title: notification.title});
+                Logger.error("Notification user not found or no email given", {title: notification.title});
                 return response.error("User is required for notification");
             }
             const emailPath = notification.emailPath || this._basePath + "/notification.pug";
@@ -40,7 +41,7 @@ export default class NotificationMailer extends Email implements INotifier {
 
             return this.send(false);
         } catch (e) {
-            Log.exception(e, {user: notification?.user});
+            Logger.exception(e, {user: notification?.user});
             return response.exception(e);
         }
     }

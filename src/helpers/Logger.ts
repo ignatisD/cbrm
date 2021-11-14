@@ -5,7 +5,6 @@ import { LogLevel } from "../interfaces/helpers/LogLevel";
 
 /**
  * Always remember to update the interface
- * @see Log
  */
 export default class Logger {
 
@@ -38,38 +37,31 @@ export default class Logger {
         log(timeStamp + `\x1b[${this._color}m`, ...args, `\x1b[8m[~]${this._level}${Logger._end}\x1b[0m`);
     }
 
-    /** @see Log.log */
     public static log(...args: any): void {
         new Logger()._log(...args);
     }
 
-    /** @see Log.info */
     public static info(...args: any): void {
         new Logger(Logger.blue, "INFO")._log(...args);
     }
 
-    /** @see Log.success */
     public static success(...args: any): void {
         new Logger(Logger.green, "INFO")._log(...args);
     }
 
-    /** @see Log.warning */
     public static warning(...args: any): void {
         new Logger(Logger.yellow, "WARNING")._log(...args);
     }
 
-    /** @see Log.error */
     public static error(...args: any): void {
         new Logger(Logger.red, "ERROR")._log(...args);
     }
 
-    /** @see Log.exception */
     public static exception(...args: any): void {
         new Logger(Logger.red, "CRITICAL")._log(...args);
         Logger.report(args[0], args[1]);
     }
 
-    /** @see Log.debug */
     public static debug(...args: any): void {
         if (!Logger._debugEnabled) {
             return;
@@ -77,7 +69,6 @@ export default class Logger {
         new Logger()._log(...args);
     }
 
-    /** @see Log.pretty */
     public static pretty(...args: any): void {
         if (!Logger._debugEnabled) {
             return;
