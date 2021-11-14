@@ -6,7 +6,8 @@
         "moduleResolution": "node",
         "resolveJsonModule": true,
         "inlineSourceMap": true,
-        "outDir": "../dist",
+        "declaration": true,
+        "outDir": "../lib",
         "baseUrl": "./",
         "allowSyntheticDefaultImports": true,
         "typeRoots": [
@@ -31,6 +32,6 @@
     ],
     "exclude": [
         "../node_modules",
-        "../dist"
+        "../lib"
     ]
 }

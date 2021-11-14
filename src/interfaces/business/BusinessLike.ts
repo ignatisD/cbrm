@@ -13,6 +13,7 @@ export default interface IBusinessLike {
     nextTube: Tube;
     token: string;
     locale: string;
+    user: any;
     meta?: IRequestMetadata;
     addToken: (token: string) => this;
     addMeta: (token: IRequestMetadata) => this;
@@ -23,9 +24,9 @@ export default interface IBusinessLike {
     setLocale: (locale: string) => this;
     fromRequest: (req?: Request) => this;
     notifyUser: (notification: INotification) => this;
-    businessUser: any;
     progress: (percentage: number) => any;
     addTransaction: (session: any) => void;
+    exception: (...args: any) => void;
 }
 
 export interface IBusinessRegistry<T extends IBusinessLike> {

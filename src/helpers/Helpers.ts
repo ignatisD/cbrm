@@ -10,7 +10,7 @@ import { IPopulate, ISearchTerms } from "@interfaces/helpers/SearchTerms";
 // Helpers
 import ResponseError from "@helpers/common/ResponseError";
 import SearchTerms from "@helpers/SearchTerms";
-import { Doc } from "@interfaces/models/base/ModelBase";
+import { Doc } from "@interfaces/models/base/Document";
 import { URL } from "url";
 import { renderFile } from "pug";
 import juice from "juice";

@@ -16,8 +16,6 @@ import * as passport from "passport";
 import * as path from "path";
 import * as v8 from "v8";
 
-import MongooseConnector from "@helpers/connectors/MongooseConnector";
-
 // Set Language Options
 import { languageOptions } from "@config/languageOptions";
 global.languages = languageOptions.locales;
@@ -60,8 +58,8 @@ export default class Server {
     protected apm: Agent = null;
 
     protected _server: http.Server|https.Server = null;
-    protected _dbPromise: Promise<any>;
-    protected _connector: IConnector;
+    protected _dbPromise: Promise<any> = new Promise(() => void 0);
+    protected _connector: IConnector = null;
 
     constructor(envFile: string) {
         this.envFile = envFile;
@@ -175,15 +173,21 @@ export default class Server {
     }
 
     public databaseConnection() {
-        this._connector = new MongooseConnector();
-        return this._connector.init({uri: process.env.MONGODB_URI});
+        return new Promise(() => void 0);
+    }
+
+    /**
+     * You should override this with your own request authenticator
+     */
+    public authenticator() {
+        // Initialize the default Authenticator
+        const secret = process.env.SECRET_OR_KEY || "01A10A01A10A01A10A01A10A";
+        this.app.use(new Authenticator(secret).initialize());
     }
 
     public async express() {
 
-        // Initialize Authenticator
-        const secret = process.env.SECRET_OR_KEY || "01A10A01A10A01A10A01A10A";
-        this.app.use(new Authenticator(secret).initialize());
+        this.authenticator();
 
         // Express configuration.
         this.app.set("port", this.port);

@@ -1,7 +1,7 @@
 import MongooseBusinessBase from "@business/base/MongooseBusinessBase";
 import MongooseRepositoryBaseWithDeleted from "@repository/base/MongooseRepositoryBaseWithDeleted";
 import { ISearchTerms } from "@interfaces/helpers/SearchTerms";
-import { Doc } from "@interfaces/models/base/ModelBase";
+import { Doc } from "@interfaces/models/base/Document";
 import IPaginatedResults from "@interfaces/helpers/PaginatedResults";
 
 export default class MongooseBusinessBaseWithDeleted<T> extends MongooseBusinessBase<T> {

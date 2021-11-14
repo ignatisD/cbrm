@@ -5,7 +5,7 @@ import { ProxyOptions } from "express-http-proxy";
 import IRoute from "@interfaces/common/Route";
 import IController from "@interfaces/controllers/base/Controller";
 import Authenticator from "@helpers/Authenticator";
-import { IPermissionsConfig, PermissionLevel } from "@interfaces/models/Role";
+import { IPermissionsConfig, PermissionLevel } from "@interfaces/models/Permission";
 
 export default class Route implements IRoute {
 

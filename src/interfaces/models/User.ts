@@ -6,7 +6,6 @@ export default interface IUser {
 
     firstName: string;
     lastName: string;
-    fullName?: string;
 
     email: string;
     phone?: string;
@@ -26,23 +25,17 @@ export default interface IUser {
     google?: string;
     facebook?: string;
 
-    permissions?: string[];
-    permissionMap?: Record<string, number>;
     roles?: IRole[];
+    permissions?: string[];
 
     createdAt?: Date;
     updatedAt?: Date;
 
-    plain?(): PlainUser;
-
-    comparePassword?(password: string): boolean;
-
-    isSuperUser?(): boolean;
-
-    hasAccess?(permissions: string[], role: IRole, operation?: string): boolean;
-
+    // virtuals
+    fullName?: string;
+    permissionMap?: Record<string, number>;
 }
 
-export type PlainUser = Pick<IUser, "_id"|"sessionId"|"email"|"firstName"|"lastName"|"image"|"fullName"|"phone"|"mobile"|"permissions"|"roles">;
+export type PlainUser = Pick<IUser, "_id"|"sessionId"|"email"|"firstName"|"lastName"|"image"|"fullName"|"phone"|"mobile"|"permissions"|"permissionMap"|"roles">;
 
 export type RedisUser = Pick<IUser, "_id"|"sessionId"|"email"|"firstName"|"lastName">;

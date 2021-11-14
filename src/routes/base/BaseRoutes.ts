@@ -3,7 +3,7 @@ import * as path from "path";
 import IBaseRoutes, { ISimpleRoute } from "@interfaces/routes/BaseRoutes";
 import IRoute from "@interfaces/common/Route";
 import JsonResponse from "@helpers/JsonResponse";
-import Route from "@routes/base/Route";
+import Route from "@interfaces/helpers/Route";
 import { PermissionLevel } from "@interfaces/models/Role";
 import IController from "@interfaces/controllers/base/Controller";
 import CommonBusiness from "@business/CommonBusiness";

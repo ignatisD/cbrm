@@ -1,6 +1,6 @@
 import { IModel } from "@interfaces/models/base/Model";
 import { IMappingProperty } from "@interfaces/helpers/Mapping";
-import { IDoc } from "@interfaces/models/base/ModelBase";
+import { IDoc } from "@interfaces/models/base/Document";
 
 type EsType = "alias"|"boolean"|"binary"|"object"|"nested"|"ip"|"completion"|"token_count"|"murmur3";
 type EsGeoType = "geo_point"|"geo_shape"|"shape";

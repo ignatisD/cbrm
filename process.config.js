@@ -2,7 +2,7 @@ module.exports = {
     "apps" : [
         {
             "name"        : "CBRM",
-            "script"      : "app.js",
+            "script"      : "index.js",
             "interpreter_args": "-r tsconfig-paths/register --max-old-space-size=8192",
             "exec_mode": "cluster",
             "kill_timeout": 5000,

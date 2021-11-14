@@ -350,7 +350,7 @@ export default class QueuedJob implements IQueuedJob {
             await sumExpire;
             return counter;
         } catch (e) {
-            Log.exception(e, business?.businessUser);
+            business?.exception?.(e);
             return -1;
         }
     }
@@ -378,7 +378,7 @@ export default class QueuedJob implements IQueuedJob {
             await instance.update(notificationKey, notification, this.ttl);
             return counter;
         } catch (e) {
-            Log.exception(e, business?.businessUser);
+            business?.exception?.(e);
             return -1;
         }
     }
@@ -400,7 +400,7 @@ export default class QueuedJob implements IQueuedJob {
             const errorKey = this.getKey(uniqueId, "errors");
             return await instance.push(errorKey, errors);
         } catch (e) {
-            Log.exception(e, business?.businessUser);
+            business?.exception?.(e);
             return -1;
         }
     }
@@ -476,7 +476,7 @@ export default class QueuedJob implements IQueuedJob {
             await delError;
             return counter;
         } catch (e) {
-            Log.exception(e, business?.businessUser);
+            business?.exception?.(e);
             return -1;
         }
     }

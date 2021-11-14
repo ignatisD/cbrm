@@ -6,7 +6,7 @@ import { Request } from "express";
 // Interfaces
 import IBusinessLike from "@interfaces/business/BusinessLike";
 import IRepository from "@interfaces/repository/Repository";
-import { Doc } from "@interfaces/models/base/ModelBase";
+import { Doc } from "@interfaces/models/base/Document";
 import INotification from "@interfaces/helpers/Notification";
 import IUser from "@interfaces/models/User";
 import { IRequestMetadata, ISearchTerms } from "@interfaces/helpers/SearchTerms";
@@ -52,6 +52,10 @@ export default abstract class Business<T = any> implements IBusinessLike {
         return this._debug;
     }
 
+    public get user() {
+        return this._user;
+    }
+
     public get token() {
         return this._token;
     }
@@ -69,13 +73,6 @@ export default abstract class Business<T = any> implements IBusinessLike {
         return `Bearer ${this.token}`;
     }
 
-    public get businessUser() {
-        return {
-            business: this.constructor?.name,
-            user: pick(this._user, ["_id", "fullName", "firstName", "lastName", "email"])
-        };
-    }
-
     public get uniqueId(): string|null {
         return this._uniqueId || null;
     }
@@ -84,13 +81,13 @@ export default abstract class Business<T = any> implements IBusinessLike {
         this._uniqueId = uniqId || null;
     }
 
-    public exception(e: IError, method?: string, details?: any): void {
+    public exception(e: IError, method?: string, details?: any, skipAPM?: boolean): void {
         Log.exception(e, {
             business: this.constructor?.name,
             method: method,
             user: pick(this._user, ["_id", "fullName", "firstName", "lastName", "email"]),
             details
-        });
+        }, skipAPM);
     }
 
     public warning(warning: string, method?: string, details?: any): void {
@@ -162,7 +159,7 @@ export default abstract class Business<T = any> implements IBusinessLike {
     public addUser(user: Partial<IUser> = null, socket?: string|string[]): this {
         this._user = user;
         if (this._repo) {
-            this._repo.addUser(user);
+            this._repo.addUser?.(user);
         }
         if (socket) {
             this.addSocket(socket);

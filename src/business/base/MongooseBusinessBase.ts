@@ -1,7 +1,7 @@
 import IBusinessBase from "@interfaces/business/BusinessBase";
 import { IPopulate, ISearchTerms } from "@interfaces/helpers/SearchTerms";
 import IPaginatedResults from "@interfaces/helpers/PaginatedResults";
-import { Doc } from "@interfaces/models/base/ModelBase";
+import { Doc } from "@interfaces/models/base/Document";
 import Business from "@business/base/Business";
 import MongooseRepositoryBase from "@repository/base/MongooseRepositoryBase";
 import JsonResponse from "@helpers/JsonResponse";
@@ -41,7 +41,7 @@ export default class MongooseBusinessBase<T> extends Business<T> implements IBus
      */
     public async ensureMapping(mode?: any): Promise<JsonResponse> {
         if (mode) {
-            Log.warning("Mapping mode is not supported for MongoDB models");
+            this.warning("Mapping modes are not supported for MongoDB models", "ensureMapping");
         }
         await this._repo.ensureMapping();
         return new JsonResponse().ok(true);
@@ -64,7 +64,7 @@ export default class MongooseBusinessBase<T> extends Business<T> implements IBus
             const result: T[] = await this._repo.insertMany(docs, options);
             return response.ok(result);
         } catch (e) {
-            Log.exception(e, this.businessUser);
+            this.exception(e);
             return response.exception(e);
         }
     }
@@ -81,7 +81,7 @@ export default class MongooseBusinessBase<T> extends Business<T> implements IBus
             const model = await this._repo.create(data);
             return response.ok(model);
         } catch (e) {
-            Log.exception(e, this.businessUser);
+            this.exception(e);
             return response.exception(e);
         }
     }
@@ -101,7 +101,7 @@ export default class MongooseBusinessBase<T> extends Business<T> implements IBus
             const models = await this._repo.createMany(data);
             return response.ok(models);
         } catch (e) {
-            Log.exception(e, this.businessUser);
+            this.exception(e);
             return response.exception(e);
         }
     }
@@ -200,7 +200,7 @@ export default class MongooseBusinessBase<T> extends Business<T> implements IBus
             const models = await this._repo.updateOne(_id, data);
             return response.ok(models);
         } catch (e) {
-            Log.exception(e, this.businessUser);
+            this.exception(e);
             return response.exception(e);
         }
     }
@@ -216,7 +216,7 @@ export default class MongooseBusinessBase<T> extends Business<T> implements IBus
             const updated = await this._repo.updateOneByQuery(selector, props);
             return response.ok(updated);
         } catch (e) {
-            Log.exception(e, this.businessUser);
+            this.exception(e);
             return response.exception(e);
         }
     }
@@ -233,7 +233,7 @@ export default class MongooseBusinessBase<T> extends Business<T> implements IBus
             const model = await this._repo.updateMany(searchTerms.filters, data);
             return response.ok(model.n || 0);
         } catch (e) {
-            Log.exception(e, this.businessUser);
+            this.exception(e);
             return response.exception(e);
         }
     }
@@ -251,7 +251,7 @@ export default class MongooseBusinessBase<T> extends Business<T> implements IBus
             const model = await this._repo.updateOrCreate(toFind, item, options);
             return response.ok(model);
         } catch (e) {
-            Log.exception(e, this.businessUser);
+            this.exception(e);
             return response.exception(e);
         }
     }
@@ -271,7 +271,7 @@ export default class MongooseBusinessBase<T> extends Business<T> implements IBus
             const model = await this._repo.spliceFromArray(filters, props);
             return response.ok(model.n || 0);
         } catch (e) {
-            Log.exception(e, this.businessUser);
+            this.exception(e);
             return response.exception(e);
         }
     }
@@ -298,7 +298,7 @@ export default class MongooseBusinessBase<T> extends Business<T> implements IBus
 
             return response.ok(model.n || 0);
         } catch (e) {
-            Log.exception(e, this.businessUser);
+            this.exception(e);
             return response.exception(e);
         }
     }
@@ -314,7 +314,7 @@ export default class MongooseBusinessBase<T> extends Business<T> implements IBus
             const models = <IBulkWriteOpResultObject>(await this._repo.updateManyWithDifferentValues(partials, props));
             return response.ok(models);
         } catch (e) {
-            Log.exception(e, this.businessUser);
+            this.exception(e);
             return response.exception(e);
         }
     }
@@ -331,7 +331,7 @@ export default class MongooseBusinessBase<T> extends Business<T> implements IBus
             const bulkOpResult = <IBulkWriteOpResultObject>(await this._repo.updateOrCreateMany(partials, props));
             return response.ok(bulkOpResult);
         } catch (e) {
-            Log.exception(e, this.businessUser);
+            this.exception(e);
             return response.exception(e);
         }
     }

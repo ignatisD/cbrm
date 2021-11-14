@@ -100,9 +100,9 @@ export default class ApiBusiness<T = any> extends Business<T> {
                     return new JsonResponse<T>(<IResponse<T>>e.response.data);
                 }
                 if (e.name === "StatusCodeError" && e.code !== "500") {
-                    Log.warning(e.message, e.request?.url, this.businessUser);
+                    this.warning(e.message, "execRequest", {url: e.request?.url});
                 } else {
-                    Log.exception(Helpers.requestException(e), this.businessUser, true);
+                    this.exception(Helpers.requestException(e), "execRequest", null, true);
                 }
                 return JsonResponse.caught<T>(e);
             });
