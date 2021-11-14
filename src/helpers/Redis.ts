@@ -12,15 +12,15 @@ export default class Redis {
     /**
      * A static property storing the current active Redis class instance for use by the application.
      */
-    private static _instance: Redis;
+    protected static _instance: Redis;
     /**
      * The IORedis client responsible for conveying the commands to the Redis database.
      */
-    private readonly _client: IORedis.Redis;
+    protected readonly _client: IORedis.Redis;
     /**
      * This is the prefix used to seperate the data onto different places of the Redis database.
      */
-    private readonly _prefix: string;
+    protected readonly _prefix: string;
     /**
      * Max age ttl (time to live) for saving stuff on the Redis database if none was specified.
      * Currently this matches the refreshToken's duration = 3 days
@@ -41,14 +41,14 @@ export default class Redis {
     }
 
     /**
-     * Getter accessing the private _client that was started on construction of the Redis class instance
+     * Getter accessing the protected _client that was started on construction of the Redis class instance
      */
     public get client(): IORedis.Redis {
         return this._client;
     }
 
     /**
-     * Getter accessing the private _prefix that was assigned on construction of the Redis class instance
+     * Getter accessing the protected _prefix that was assigned on construction of the Redis class instance
      */
     public get prefix(): string {
         return this._prefix;

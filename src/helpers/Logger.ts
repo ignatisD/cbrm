@@ -8,17 +8,17 @@ import { LogLevel } from "../interfaces/helpers/LogLevel";
  */
 export default class Logger {
 
-    private static _apm: any = null;
-    private static _debugEnabled: boolean = true;
-    private static _end: string = "[~]development@localhost[~]";
+    protected static _apm: any = null;
+    protected static _debugEnabled: boolean = true;
+    protected static _end: string = "[~]development@localhost[~]";
 
     static red: string      = "31";
     static green: string    = "32";
     static yellow: string   = "33";
     static blue: string     = "34";
 
-    private _color: string;
-    private _level: LogLevel;
+    protected _color: string;
+    protected _level: LogLevel;
 
     constructor(color: string = "0", level: LogLevel = "DEBUG") {
         this._color = color;
@@ -31,7 +31,7 @@ export default class Logger {
         Logger._apm = apm;
     }
 
-    private _log(...args: any): void {
+    protected _log(...args: any): void {
         const log = this._level === "ERROR" ? console.trace : console.log;
         const timeStamp = "[" + moment().format("YYYY-MM-DD[T]HH:mm:ss.SSS[Z]") + "] ";
         log(timeStamp + `\x1b[${this._color}m`, ...args, `\x1b[8m[~]${this._level}${Logger._end}\x1b[0m`);

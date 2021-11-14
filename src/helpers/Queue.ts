@@ -33,8 +33,8 @@ export default class Queue {
         return this.queues[this.getTube(Tubes.QUICK)];
     }
 
-    private static readonly _prefix = "queue";
-    private static options: Bull.QueueOptions;
+    protected static readonly _prefix = "queue";
+    protected static options: Bull.QueueOptions;
 
     protected constructor() {
     }

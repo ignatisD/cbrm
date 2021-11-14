@@ -29,7 +29,7 @@ export enum AuthError {
 
 export default class Authenticator {
 
-    private readonly secret: string;
+    protected readonly secret: string;
     public static UserBusiness: IBusinessBase<IUser>;
 
     constructor(secret: string) {

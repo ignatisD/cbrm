@@ -406,7 +406,7 @@ export default class Query implements IQuery {
     /**
      * ! Warning! Still experimental
      * @param pops
-     * @private
+     * @protected
      */
     protected _mergePopulate(pops: IPopulate[]): IPopulate[] {
         const resultPops: IPopulate[] = [];

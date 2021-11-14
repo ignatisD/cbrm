@@ -224,7 +224,7 @@ export default abstract class ControllerBase<C extends IBusinessBase> extends Co
         }
     }
 
-    private _applyPopulates(method: keyof ControllerMethodsPopulates, terms: IQuery) {
+    protected _applyPopulates(method: keyof ControllerMethodsPopulates, terms: IQuery) {
         if (!terms.options.populate?.length && this._methodPopulates[method]?.length) {
             terms.populate(this._methodPopulates[method]);
         }

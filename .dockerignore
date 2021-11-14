@@ -1,4 +1,6 @@
-/dist
-/docs
+/lib
 /node_modules
+/release
+.idea
+.github
 .env*

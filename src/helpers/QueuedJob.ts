@@ -40,7 +40,7 @@ export default class QueuedJob implements IQueuedJob {
     protected _cron: CronJob;
     public onComplete: IQueuedJob;
 
-    private static ttl: number = 259200; // 3 day
+    protected static ttl: number = 259200; // 3 day
 
     constructor(business: any, method: string = null, inputs: any[] = [], instance = true) {
         const constructor = business.constructor?.name;

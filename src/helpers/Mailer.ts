@@ -11,7 +11,7 @@ export interface IMailerOptions {
 }
 export class Mailer {
 
-    private options: SMTPTransport.Options;
+    protected options: SMTPTransport.Options;
 
     constructor(opts: IMailerOptions) {
         this.options = {
