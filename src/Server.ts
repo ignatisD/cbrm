@@ -100,8 +100,8 @@ export default class Server {
         this.app.use(i18n.init);
     }
 
-    public getApplicationController() {
-        return require("./controllers/ApplicationController").default;
+    public getApplicationRoutes(): IRoute[] {
+        return [];
     }
 
     public registerRoutes() {
@@ -109,8 +109,8 @@ export default class Server {
         const router = express.Router();
 
         // external route template
-        const ApplicationController = this.getApplicationController();
-        new ApplicationController().routes().forEach((_route: IRoute) => {
+        const routes = this.getApplicationRoutes();
+        routes.forEach((_route: IRoute) => {
             const route = new Route(_route, Server.authenticator);
             route.register(router);
         });
