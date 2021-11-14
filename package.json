@@ -13,12 +13,6 @@
         "build": "tsc -b tsconfig.json",
         "test": "npm run eslint",
         "eslint": "eslint -c .eslintrc.js --ext .ts src",
-        "cp-locales": "cp -r src/locales lib/",
-        "prepare": "npm run build",
-        "prepublishOnly": "npm run eslint",
-        "preversion": "npm run eslint",
-        "version": "git add -A src",
-        "postversion": "git push && git push --tags",
         "sr": "npx semantic-release --dry-run"
     },
     "files": [
@@ -82,8 +76,6 @@
         "uuid": "^8.0.0"
     },
     "devDependencies": {
-        "@semantic-release/changelog": "^6.0.1",
-        "@semantic-release/git": "^10.0.1",
         "@semantic-release/github": "^8.0.2",
         "@types/body-parser": "^1.19.0",
         "@types/bull": "^3.13.0",
@@ -132,7 +124,6 @@
         "plugins": [
             "@semantic-release/commit-analyzer",
             "@semantic-release/release-notes-generator",
-            "@semantic-release/changelog",
             [
                 "@semantic-release/npm",
                 {
@@ -144,13 +135,6 @@
                 "@semantic-release/github",
                 {
                     "assets": "release/*.tgz"
-                }
-            ],
-            [
-                "@semantic-release/git",
-                {
-                    "assets": ["CHANGELOG.md", "package.json", "package-lock.json", "npm-shrinkwrap.json"],
-                    "message": "chore(release): set `package.json` to ${nextRelease.version} [skip ci]\\n\\n${nextRelease.notes}"
                 }
             ]
         ]

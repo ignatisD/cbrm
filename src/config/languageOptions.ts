@@ -28,7 +28,7 @@ export const languageOptions: i18n.ConfigurationOptions & ExtraLanguageOptions =
     queryParameter: "lang",
 
     // where to store json files - defaults to "./locales" relative to modules directory
-    directory: __dirname + "/../locales",
+    directory: __dirname + "/locales",
 
     // controll mode on directory creation - defaults to NULL which defaults to umask of process user. Setting has no effect on win.
     // directoryPermissions: "755",
