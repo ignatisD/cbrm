@@ -65,11 +65,11 @@ export default class Server {
     }
 
     public static bootstrap(configuration: IServerConfiguration): Promise<Server> {
-        return new Server(configuration).init();
+        return new this(configuration).init();
     }
 
     public static test(configuration: IServerConfiguration): Server {
-        const server = new Server(configuration);
+        const server = new this(configuration);
         server.env();
         server.configure();
         return server;
