@@ -1,8 +1,7 @@
 import * as moment from "moment";
+import { LogLevel } from "../interfaces/helpers/LogLevel";
 
 /* eslint-disable */
-
-export type Level = "DEBUG"|"INFO"|"ERROR"|"CRITICAL"|"WARNING"|"EMERGENCY"|"SEVERE"|"FATAL";
 
 /**
  * Always remember to update the interface
@@ -20,9 +19,9 @@ export default class Logger {
     static blue: string     = "34";
 
     private _color: string;
-    private _level: Level;
+    private _level: LogLevel;
 
-    constructor(color: string = "0", level: Level = "DEBUG") {
+    constructor(color: string = "0", level: LogLevel = "DEBUG") {
         this._color = color;
         this._level = level;
     }

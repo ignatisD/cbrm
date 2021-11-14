@@ -1,6 +1,6 @@
-import IResponse from "@interfaces/helpers/base/Response";
-import IError from "@interfaces/common/Error";
-import ResponseError from "@helpers/common/ResponseError";
+import IResponse from "../interfaces/helpers/Response";
+import IError from "../interfaces/helpers/Error";
+import ResponseError from "./ResponseError";
 
 /**
  * A quick access to a standardized Json Response

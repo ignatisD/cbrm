@@ -1,5 +1,5 @@
-import IPaginatedResults from "@interfaces/helpers/PaginatedResults";
-import IError from "@interfaces/common/Error";
+import IPaginatedResults from "../interfaces/helpers/PaginatedResults";
+import IError from "../interfaces/helpers/Error";
 
 export default class Pagination<T = any> implements IPaginatedResults<T> {
 

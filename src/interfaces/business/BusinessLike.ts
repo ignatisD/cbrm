@@ -1,16 +1,15 @@
 import { Job } from "bull";
 import { Request } from "express";
-import INotification from "@interfaces/helpers/Notification";
-import { Tube } from "@helpers/Tubes";
-import { IRequestMetadata } from "@interfaces/helpers/SearchTerms";
+import INotification from "../helpers/Notification";
+import { IRequestMetadata } from "../helpers/Query";
 
 export default interface IBusinessLike {
     debug: any;
     modelName: string;
     uniqueId: string;
     job: Job;
-    tube: Tube;
-    nextTube: Tube;
+    tube: string;
+    nextTube: string;
     token: string;
     locale: string;
     user: any;

@@ -1,4 +1,4 @@
-import { CronTab } from "@interfaces/common/QueuedJob";
+import { CronTab } from "../interfaces/helpers/QueuedJob";
 
 // ? https://crontab.guru/
 const cronTab: CronTab = {

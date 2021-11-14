@@ -1,16 +1,16 @@
-import * as moment from "moment";
+import { Job, JobOptions } from "bull";
 import { CronJob } from "cron";
 import cronstrue from "cronstrue";
-import { IJobData, IQueuedJob } from "@interfaces/common/QueuedJob";
 import { pick } from "lodash";
-import Queue from "@config/Queue";
-import { Tubes, Tube } from "@helpers/Tubes";
-import JsonResponse from "@helpers/JsonResponse";
-import IUser from "@interfaces/models/User";
-import Redis from "@helpers/Redis";
-import INotification from "@interfaces/helpers/Notification";
-import { Job, JobOptions } from "bull";
-import IBusinessLike from "@interfaces/business/BusinessLike";
+import * as moment from "moment";
+import { IJobData, IQueuedJob } from "../interfaces/helpers/QueuedJob";
+import IUser from "../interfaces/models/User";
+import INotification from "../interfaces/helpers/Notification";
+import IBusinessLike from "../interfaces/business/BusinessLike";
+import Queue from "./Queue";
+import { Tubes } from "./Tubes";
+import JsonResponse from "./JsonResponse";
+import Redis from "./Redis";
 
 export default class QueuedJob implements IQueuedJob {
     public business: string;
@@ -28,8 +28,8 @@ export default class QueuedJob implements IQueuedJob {
 
     public uniqueId: string;
     public api: string = global.API;
-    public tube: Tube = Tubes.NORMAL;
-    public businessTube: Tube;
+    public tube: string = Tubes.NORMAL;
+    public businessTube: string;
     public notification: INotification;
 
     public removeOnComplete: boolean = true;
@@ -70,12 +70,12 @@ export default class QueuedJob implements IQueuedJob {
         return this;
     }
 
-    public setTube(tube?: Tube) {
+    public setTube(tube?: string) {
         this.tube = tube || Tubes.NORMAL;
         return this;
     }
 
-    public nextTube(tube?: Tube) {
+    public nextTube(tube?: string) {
         if (tube) {
             this.businessTube = tube;
         }
@@ -186,7 +186,7 @@ export default class QueuedJob implements IQueuedJob {
         return this;
     }
 
-    public async fire(tube?: Tube): Promise<JsonResponse<string>> {
+    public async fire(tube?: string): Promise<JsonResponse<string>> {
         if (tube) {
             this.tube = tube;
         }

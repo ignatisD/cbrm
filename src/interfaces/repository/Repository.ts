@@ -1,4 +1,4 @@
-import IUser from "@interfaces/models/User";
+import IUser from "../models/User";
 
 export default interface IRepository {
     model: any;

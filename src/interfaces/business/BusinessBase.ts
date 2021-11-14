@@ -1,17 +1,17 @@
-import { ISearchTerms } from "@interfaces/helpers/SearchTerms";
-import { IMappingResponse } from "@interfaces/helpers/Mapping";
-import IBusinessLike from "@interfaces/business/BusinessLike";
-import IPaginatedResults from "@interfaces/helpers/PaginatedResults";
+import { IQuery } from "../helpers/Query";
+import { IMappingResponse } from "../helpers/Mapping";
+import IBusinessLike from "../business/BusinessLike";
+import IPaginatedResults from "../helpers/PaginatedResults";
 
 export default interface IBusinessBase<T = any> extends IBusinessLike {
     create: (item: Partial<T>|any, refresh?: any) => Promise<any>;
     createMany: (items: Partial<T>[], refresh?: any) => Promise<any>;
 
-    retrieve: (terms: ISearchTerms) => Promise<IPaginatedResults<T>>;
-    search: (terms: ISearchTerms) => Promise<IPaginatedResults<T>>;
-    find: (terms: ISearchTerms) => Promise<T[]>;
-    findById: (terms: ISearchTerms) => Promise<T>;
-    findOne: (terms: ISearchTerms) => Promise<T>;
+    retrieve: (terms: IQuery) => Promise<IPaginatedResults<T>>;
+    search: (terms: IQuery) => Promise<IPaginatedResults<T>>;
+    find: (terms: IQuery) => Promise<T[]>;
+    findById: (terms: IQuery) => Promise<T>;
+    findOne: (terms: IQuery) => Promise<T>;
 
     update: (id: string, params: Partial<T>|any, refresh?: any) => Promise<any>;
     updateMany: (params: any, props?: any) => Promise<any>;
@@ -23,9 +23,9 @@ export default interface IBusinessBase<T = any> extends IBusinessLike {
     deleteMany: (params: any) => Promise<any>;
 
     restore: (id: string) => Promise<any>;
-    duplicate: (terms: ISearchTerms) => Promise<any>;
+    duplicate: (terms: IQuery) => Promise<any>;
 
-    count: (terms: ISearchTerms) => Promise<number>;
+    count: (terms: IQuery) => Promise<number>;
     getMapping: (modelOnly?: boolean) => IMappingResponse|any;
     ensureMapping: (mode?: any) => Promise<any>;
 }

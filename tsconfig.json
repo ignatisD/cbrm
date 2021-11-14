@@ -1,0 +1,23 @@
+{
+    "compilerOptions": {
+        "target": "ES2020",
+        "module": "ES2020",
+        "noImplicitAny": false,
+        "moduleResolution": "node",
+        "resolveJsonModule": true,
+        "declaration": true,
+        "outDir": "./lib",
+        "allowSyntheticDefaultImports": true,
+        "typeRoots": [
+            "./node_modules/@types",
+            "./interfaces/types"
+        ]
+    },
+    "include": [
+        "./**/*"
+    ],
+    "exclude": [
+        "./node_modules",
+        "./lib"
+    ]
+}

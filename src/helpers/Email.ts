@@ -1,9 +1,9 @@
 import * as htmlToText from "html-to-text";
-import { renderFile } from "pug";
-import Mail, { Address, Attachment, Headers } from "nodemailer/lib/mailer";
-import JsonResponse from "@helpers/JsonResponse";
-import { EmailResponse } from "@interfaces/helpers/EmailResponse";
 import * as juice from "juice";
+import Mail, { Address, Attachment, Headers } from "nodemailer/lib/mailer";
+import { renderFile } from "pug";
+import JsonResponse from "./JsonResponse";
+import { EmailResponse } from "../interfaces/helpers/EmailResponse";
 
 export default class Email implements Mail.Options {
 

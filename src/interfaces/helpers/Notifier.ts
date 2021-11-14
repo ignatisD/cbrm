@@ -1,5 +1,5 @@
-import INotification from "@interfaces/helpers/Notification";
-import IResponse from "./base/Response";
+import INotification from "./Notification";
+import IResponse from "./Response";
 
 export interface INotifier {
     send: () => Promise<IResponse>;

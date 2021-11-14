@@ -1,8 +1,8 @@
-import IController from "@interfaces/controllers/base/Controller";
-import IReadController from "@interfaces/controllers/common/ReadController";
-import IWriteController from "@interfaces/controllers/common/WriteController";
-import IBusinessBase from "@interfaces/business/BusinessBase";
-import { IPopulate } from "@interfaces/helpers/SearchTerms";
+import IController from "./Controller";
+import IReadController from "./ReadController";
+import IWriteController from "./WriteController";
+import IBusinessBase from "../business/BusinessBase";
+import { IPopulate } from "../helpers/Query";
 
 export default interface IControllerBase extends IController, IReadController, IWriteController {
     model?: string;

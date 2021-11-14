@@ -9,10 +9,10 @@ import {
     query,
     ValidationError
 } from "express-validator/check";
-import ResponseError from "@helpers/common/ResponseError";
+import ResponseError from "./ResponseError";
 import { NextFunction, Request, RequestHandler, Response } from "express";
 import { sanitize, sanitizeBody, sanitizeParam, sanitizeQuery, SanitizationChain } from "express-validator/filter";
-import JsonResponse from "@helpers/JsonResponse";
+import JsonResponse from "./JsonResponse";
 
 /**
  * A Validator class with static methods from express-validator
