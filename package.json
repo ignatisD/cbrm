@@ -1,6 +1,6 @@
 {
     "name": "@ignatisd/cbrm",
-    "version": "0.1.0",
+    "version": "0.0.0-semantic-released",
     "description": "A light NodeJS typescript-based framework",
     "repository": {
         "type": "git",
