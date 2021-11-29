@@ -4,7 +4,7 @@ import { createHash } from "crypto";
 import { performance } from "perf_hooks";
 import { Request, Application } from "express";
 import { Types } from "mongoose";
-import { uniq } from "lodash";
+import { uniq, get as loGet, set as loSet } from "lodash";
 import { URL } from "url";
 import { renderFile } from "pug";
 // Interfaces
@@ -524,7 +524,7 @@ export default class Helpers {
                     return;
                 }
                 const pathProp = pop.pathProp || pop.path;
-                const property = Helpers.getOneLevelNestedProperties(pathProp, doc);
+                const property = loGet(doc, pathProp);
                 if (Array.isArray(property)) {
                     property.forEach((p) => {
                         maps[pop.business].ids[p] = 1;
@@ -579,7 +579,7 @@ export default class Helpers {
             }
             const results: any[] = await businessInstance.find(terms);
             results.forEach((result: any) => {
-                const key = Helpers.getNestedFieldValue(maps[modelBusiness].prop, result);
+                const key = loGet(result, maps[modelBusiness].prop);
                 maps[modelBusiness].docs[key] = result;
             });
         }
@@ -591,7 +591,7 @@ export default class Helpers {
                 const pathProp = pop.pathProp || pop.path;
                 let value: Record<string, any> = {};
                 let isArray = false;
-                const property = Helpers.getOneLevelNestedProperties(pathProp, doc);
+                const property = loGet(doc, pathProp);
                 if (Array.isArray(property)) {
                     isArray = true;
                     property.forEach((p) => {
@@ -611,7 +611,7 @@ export default class Helpers {
                 if (!value || Helpers.isEmptyObject(value)) {
                     return;
                 }
-                Helpers.setOneLevelNestedProperties(pop.path, doc, value, pathProp, isArray);
+                loSet<any>(doc, pathProp, value);
             });
         });
         return onlyOne ? docs[0] : docs;
