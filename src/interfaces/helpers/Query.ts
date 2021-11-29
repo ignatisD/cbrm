@@ -61,37 +61,13 @@ export interface IQuery {
     scrollId?: string;
     locale?: string;
     token?: string;
+    useMasterKey?: boolean;
     debug?: boolean;
     filters?: any;
     opFilters?: IFilter[];
     raw?: any;
     projection?: any;
     options?: ISearchTermsOptions;
-
-    setId?(id: string): IQuery;
-    setIndex?(index: string): IQuery;
-    setSlices?(slices: number): IQuery;
-    setScroll?(scrollSeconds: number, scrollId?: string): IQuery;
-    select?(fields: string): IQuery;
-    addSelect?(field: string, value?: number): IQuery;
-    searchIn?(textFields: string[]): IQuery;
-    setOption?(key: string, value: any): IQuery;
-    populate?(populates?: IPopulate[]|string[]): IQuery;
-    autopopulate?(autopopulate?: boolean): IQuery;
-    setPaging?(page: number, limit?: number): IQuery;
-    setLocale?(locale?: string): IQuery;
-    setFilters?(filters: any): IQuery;
-    setFilter?(key: string, val: any, op?: IFilterOp): IQuery;
-    removeFilter?(key: string): IQuery;
-    setLean?(lean: boolean): IQuery;
-    setSort?(sort: any): IQuery;
-    setToken?(token: string): IQuery;
-    /**
-     * Adds 'Bearer' to the auth token and returns it
-     */
-    authorization?(): string;
-    setProjectionForPaginate?(): IQuery;
-    readFrom?(pref: ReadPreference): IQuery;
 }
 
 export interface IRequestMetadata {

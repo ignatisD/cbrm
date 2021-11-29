@@ -19,6 +19,7 @@ export default class Query implements IQuery {
     public index: string;
     public read: ReadPreference;
     public token: string;
+    public useMasterKey: boolean;
     public refresh: boolean|"wait_for";
     public slices: number;
     public scroll: number;
@@ -331,14 +332,17 @@ export default class Query implements IQuery {
     /**
      * Pass a comma separated fields you want for projection
      */
-    public select(fields: string = "") {
+    public select(fields: string|string[] = "") {
         const projection = {};
-        let delimiter = ",";
-        if (!/,/.test(fields)) {
-            delimiter = " ";
+        if (!Array.isArray(fields)) {
+            let delimiter = ",";
+            if (!/,/.test(fields)) {
+                delimiter = " ";
+            }
+            fields = fields.split(delimiter);
         }
 
-        fields.split(delimiter).map((field: string) => {
+        fields.map((field: string) => {
             field = field.trim();
             if (field.startsWith("-")) {
                 field = field.replace("-", "");
@@ -352,7 +356,7 @@ export default class Query implements IQuery {
         return this;
     }
 
-    public addSelect(field: string = "", value: number = 1) {
+    public addSelect(field: string, value: number = 1) {
         if (!field) {
             return;
         }
@@ -363,6 +367,90 @@ export default class Query implements IQuery {
         this.projection = Query.fixProjection(this.projection);
         return this;
     }
+
+    public limit(limit: number) {
+        this.options.limit = limit;
+        return this;
+    }
+
+    public skip(offset: number) {
+        if (!this.options.limit) {
+            return;
+        }
+        this.options.page = Math.ceil(offset / this.options.limit) + 1;
+        return this;
+    }
+
+    public equalTo(key: string, value: any) {
+        this.setFilter(key, value, "$eq");
+        return this;
+    }
+
+    public notEqualTo(key: string, value: any) {
+        this.setFilter(key, value, "$ne");
+        return this;
+    }
+
+    public exists(key: string) {
+        this.setFilter(key, true, "$exists");
+        return this;
+    }
+
+    public doesNotExist(key: string) {
+        this.setFilter(key, false, "$exists");
+        return this;
+    }
+
+    public containedIn(key: string, value: any[]) {
+        this.setFilter(key, value, "$in");
+        return this;
+    }
+
+    public notContainedIn(key: string, value: any[]) {
+        this.setFilter(key, value, "$nin");
+        return this;
+    }
+
+    public matches(key: string, value: string|RegExp) {
+        this.setFilter(key, value, "$regex");
+        return this;
+    }
+
+    public lessThan(key: string, value: any) {
+        this.setFilter(key, value, "$lt");
+        return this;
+    }
+
+    public lessThanOrEqualTo(key: string, value: any) {
+        this.setFilter(key, value, "$lte");
+        return this;
+    }
+
+    public greaterThan(key: string, value: any) {
+        this.setFilter(key, value, "$gt");
+        return this;
+    }
+
+    public greaterThanOrEqualTo(key: string, value: any) {
+        this.setFilter(key, value, "$gte");
+        return this;
+    }
+
+    public contains(key: string, value: any) {
+        this.setFilter(key, value, "$or");
+        return this;
+    }
+
+    public containsAll(key: string, value: any[]) {
+        this.setFilter(key, value, "$and");
+        return this;
+    }
+
+    public matchesQuery(key: string, value: IFilter|IFilter[]|any) {
+        this.setFilter(key, value, "$and");
+        return this;
+    }
+
 
     /**
      * Required to upgrade to MongoDB >= 4.4
@@ -843,7 +931,10 @@ export default class Query implements IQuery {
     }
 
     public searchIn(fields: string[]): IQuery {
-        if (!Helpers.isEmpty(this.filters.key) && fields.length) {
+        if (!fields.length) {
+            return this;
+        }
+        if (!Helpers.isEmpty(this.filters.key)) {
             const value = Query.escapeRegex(this.filters.key.trim());
             this.filters["$or"] = fields.map(v => ({
                 [v]: {
@@ -851,28 +942,43 @@ export default class Query implements IQuery {
                     $options: "i"
                 }
             }));
-            delete this.filters.key;
-        } else {
+            this.opFilters.push({
+                key: "or",
+                value: fields.map(f => {
+                    return new Query().setFilter(f, new RegExp(`(^|\\s)${value}.*`, "i"), "$regex");
+                }),
+                op: "$bool"
+            });
+            this.removeFilter(this.filters.key);
+            return this;
+        }
+        for (let field of fields) {
             for (let key in this.filters) {
                 if (!this.filters.hasOwnProperty(key)) {
                     continue;
                 }
-                for (let field of fields) {
-                    if (field.indexOf(key) === 0) { // either exact match or start of multilang
-                        if (field.length !== key.length) { // multiLang match
-                            this.filters["$or"] = global.languages.map((lang) => {
-                                const langVal = Query.escapeRegex(this.filters[key]);
-                                return {
-                                    [`${key}.${lang}`]: {
-                                        $regex: `.*${langVal}.*`,
-                                        $options: "i"
-                                    }
-                                };
-                            });
-                            delete this.filters[key];
-                            break;
-                        }
-                    }
+                if (field.indexOf(key) !== 0) {
+                    continue;
+                } // either exact match or start of multilang
+                if (field.length !== key.length) { // multiLang match
+                    const value = Query.escapeRegex(this.filters[key]);
+                    this.filters["$or"] = global.languages.map((lang) => {
+                        return {
+                            [`${key}.${lang}`]: {
+                                $regex: `.*${value}.*`,
+                                $options: "i"
+                            }
+                        };
+                    });
+                    this.removeFilter(key);
+                    this.opFilters.push({
+                        key: "or",
+                        value: global.languages.map((lang) => {
+                            return new Query().setFilter(`${key}.${lang}`, new RegExp(`.*${value}.*`, "i"), "$regex");
+                        }),
+                        op: "$bool"
+                    });
+                    break;
                 }
             }
         }
