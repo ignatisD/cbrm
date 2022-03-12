@@ -3,18 +3,9 @@ import juice from "juice";
 import { createHash } from "crypto";
 import { performance } from "perf_hooks";
 import { Request, Application } from "express";
-import { Types } from "mongoose";
-import { uniq } from "lodash";
 import { URL } from "url";
 import { renderFile } from "pug";
-// Interfaces
-import IBusinessBase from "../interfaces/business/BusinessBase";
-import { IPopulate, IQuery } from "../interfaces/helpers/Query";
-// Helpers
-import ResponseError from "./ResponseError";
-import Query from "./Query";
 import { Doc } from "../interfaces/models/Document";
-import Logger from "./Logger";
 
 export default class Helpers {
 
@@ -241,34 +232,6 @@ export default class Helpers {
         };
     }
 
-    public static toObjectId(_id: any) {
-        try {
-            if (!_id) {
-                return _id;
-            }
-            if (_id instanceof Types.ObjectId) {
-                return _id;
-            }
-            return Types.ObjectId.createFromHexString(_id);
-        } catch (e) {
-            Logger.error("toObjectId: ", _id);
-            Logger.exception(e);
-            return _id;
-        }
-    }
-
-    public static isObjectId(_id: string): boolean {
-        try {
-            if (Types.ObjectId.isValid(_id)) {
-                return new Types.ObjectId(_id).toHexString() === _id;
-            } else {
-                return false;
-            }
-        } catch (e) {
-            return false;
-        }
-    }
-
     public static htmlspecialchars_decode(string, quoteStyle?) {
         let optTemp = 0;
         let i = 0;
@@ -319,305 +282,61 @@ export default class Helpers {
         return string;
     }
 
-    /**
-     * @description Takes an object, and a property path and returns the value of that property or undefined
-     * if property wasn't found
-     * @param {string[]|string} p       - The tokenized path of the value to be set. Can contain arrays like: array.2.property
-     * @param {any} obj             - The target object or array to be modified
-     * @param step                  - The number of loops to start from (Used for recursion, leave empty)
-     * @return  The value of the property or undefined
-     */
-    public static getNestedFieldValue(p: string[]|string, obj: any, step: number = 0) {
-        const path = Array.isArray(p) ? p : p.split(".");
-        if (step === 0 && path.length === 1) {
-            return obj[path[0]];
+    static isDefined(val: any) {
+        return ![undefined, null].includes(val);
+    }
+
+    static isSpecialObject(val: any) {
+        if (!Helpers.isDefined(val)) {
+            return false;
         }
+        if (typeof val === "object") {
+            return val.__type === "Pointer" && Helpers.isTrue(val.className) && Helpers.isTrue(val.objectId);
+        }
+        return typeof val === "object" && typeof val.toHexString === "function";
+    }
 
-        let toSend;
+    static specialObjectToString(val: any) {
+        if (typeof val === "object" && typeof val.toHexString === "function") {
+            return val.toHexString();
+        }
+        if (typeof val === "object" && val.__type === "Pointer" && Helpers.isTrue(val.className) && Helpers.isTrue(val.objectId)) {
+            return `${val.className}$${val.objectId}`;
+        }
+        return (val || "").toString();
+    }
 
-        if (path[step].includes("[")) {
-            let parts: any = path[step].split("[");
-            let key = parts[0];
-            let index = parts[1];
+    static isPrimitive(item: any) {
+        return typeof item === "string"
+            || typeof item === "number"
+            || typeof item === "boolean"
+            || typeof item === "bigint";
+    }
 
-            index = parseInt(index.substring(0, index.length - 1), 2);
-
-            if (obj[key][index]) {
-                toSend = obj[key][index];
-            }
-
-            if (!toSend) {
-                return undefined;
-            }
-        } else {
-            try {
-                if (!this.isEmptyObject(obj) && obj[path[step]]) {
-                    toSend = obj[path[step]];
+    static mergeObjects(result: Record<string, any>, flat: Record<string, any>) {
+        Object.keys(flat).forEach(f => {
+            if (Array.isArray(flat[f])) {
+                if (result[f] === undefined) {
+                    result[f] = [];
+                } else if (!Array.isArray(result[f])) {
+                    const p = result[f];
+                    result[f] = [p];
+                }
+                result[f].push(...flat[f]);
+            } else {
+                if (result[f] === undefined) {
+                    result[f] = flat[f];
+                } else if (Array.isArray(result[f])) {
+                    result[f].push(flat[f]);
                 } else {
-                    toSend = undefined;
-                }
-            } catch (e) {
-                toSend = undefined;
-            }
-        }
-
-        if (step < path.length - 1) {
-            // Recursion
-            return this.getNestedFieldValue(path, toSend, ++step);
-        } else {
-            if (!toSend) {
-                return undefined;
-            }
-            return toSend;
-        }
-    }
-
-    /**
-     * @description Takes an object, sets the specified property and returns new object, identical to obj other than the set property
-     * @param {string} pathString   - The path of the value to be set. Can contain arrays like: array.2.property
-     * @param {any} obj             - The target object or array to be modified
-     * @param setValue              - The value to be set
-     * @param step                  - The number of loops to start from (Used for recursion, leave empty)
-     * @param deleteValue           - Whether to delete the property at the specified path
-     * @return  A copy of obj with the specified field set to setValue (if found)
-     */
-    public static setNestedFieldValue(pathString: string, obj: any, setValue: any, step: number = 0, deleteValue: boolean = false) {
-        const path = pathString.split(".");
-        if (step === path.length - 1 && obj[path[step]] !== undefined) {
-            if (!deleteValue) {
-                obj[path[step]] = setValue;
-            } else {
-                delete obj[path[step]];
-            }
-            return obj;
-        }
-
-        if (path[step].includes("[")) {
-            let parts: any = path[step].split("[");
-            let key = parts[0];
-            let index = parts[1];
-
-            index = parseInt(index.substring(0, index.length - 1), 2);
-
-            if (obj[key][index] !== undefined) {
-                obj[key][index] = Helpers.setNestedFieldValue(path.join("."), obj[key][index], setValue, ++step, deleteValue);
-            }
-        } else {
-            try {
-                if (!Helpers.isEmptyObject(obj) && obj[path[step]] !== undefined) {
-                    obj[path[step]] = Helpers.setNestedFieldValue(path.join("."), obj[path[step]], setValue, ++step, deleteValue);
-                }
-            } catch (e) {
-                return obj;
-            }
-        }
-        return obj;
-    }
-
-    public static getOneLevelNestedProperties(pathProp, doc): any|any[] {
-        let property;
-        if (!/\.\$\./.test(pathProp)) {
-            return Helpers.getNestedFieldValue(pathProp, doc);
-        }
-        let properties: any[] = [];
-        // array detected;
-        const nested = pathProp.split(".$.");
-        const levelOne: any[] = Helpers.getNestedFieldValue(nested[0], doc);
-        if (!levelOne || !Array.isArray(levelOne) || !nested[1]) {
-            return properties;
-        }
-        levelOne.forEach(subDoc => {
-            property = Helpers.getNestedFieldValue(nested[1], subDoc);
-            properties.push(...(Array.isArray(property) ? property : [property]));
-        });
-        return properties;
-    }
-
-    public static setOneLevelNestedProperties(path, doc, value, pathProp, isArray: boolean = false) {
-        if (!/\.\$\./.test(path)) {
-            const values = Object.values(value);
-            Helpers.setNestedFieldValue(path, doc, (isArray ? values : values[0]));
-            return;
-        }
-        const nestedPath = pathProp.split(".$.");
-        const nested = path.split(".$.");
-        const levelOne: any[] = Helpers.getNestedFieldValue(nested[0], doc);
-        if (!levelOne || !Array.isArray(levelOne) || !nested[1] || !nestedPath[1]) {
-            return;
-        }
-        levelOne.forEach(subDoc => {
-            let property = Helpers.getNestedFieldValue(nestedPath[1], subDoc);
-            let toSet: any = {
-                [nested[1]]: property
-            };
-            if (Array.isArray(property)) {
-                toSet = [];
-                property.forEach((p) => {
-                    if (value[p]) {
-                        toSet.push(value[p]);
-                    }
-                });
-            } else {
-                if (value[property]) {
-                    toSet = value[property];
-                }
-            }
-            Helpers.setNestedFieldValue(nested[1], subDoc, toSet);
-        });
-    }
-
-    public static async populate<T>(docs: T[], st: IQuery): Promise<T[]>;
-    public static async populate<T>(docs: T, st: IQuery): Promise<T>;
-    public static async populate<T>(docs: T[] | T, st: IQuery) {
-        let onlyOne = false;
-        if (!Array.isArray(docs)) {
-            docs = [docs];
-            onlyOne = true;
-        }
-        const populates = <IPopulate[]>(Query.fromScratch().populate(st?.options?.populate || []).options.populate);
-        if (!docs || !docs.length || !populates?.length) {
-            return onlyOne ? docs[0] : docs;
-        }
-        const maps: Record<string, Record<string, any>> = {};
-        populates.forEach((pop: IPopulate) => {
-            if (!pop.business) {
-                throw new ResponseError("BusinessNotDefined", "No business defined for this level of IPopulate", [pop]);
-            }
-            const tmpSelect = (pop.select || "").trim();
-            const select = [];
-            (tmpSelect.includes(",") ? tmpSelect.split(",") : tmpSelect.split(" ")).forEach(s => {
-                if (s) {
-                    select.push(s);
-                }
-            });
-            if (!maps[pop.business]) {
-                maps[pop.business] = {
-                    business: pop.business,
-                    ids: {},
-                    docs: {},
-                    populate: {},
-                    filters: pop.filters,
-                    select: select,
-                    prop: pop.prop || "_id",
-                    path: pop.path,
-                    pathProp: pop.pathProp || pop.path
-                };
-            } else {
-                if (pop.path === maps[pop.business].path) {
-                    pop.markForSkip = true;
-                }
-            }
-            if (select?.length) {
-                maps[pop.business].select.push(...select);
-            }
-            if (pop.populate?.length) {
-                if (!maps[pop.business].populate[pop.path]) {
-                    maps[pop.business].populate[pop.path] = pop.populate;
-                } else {
-                    maps[pop.business].populate[pop.path].push(...pop.populate);
+                    const p = result[f];
+                    result[f] = [p, flat[f]];
                 }
             }
         });
-        docs.forEach((doc) => {
-            populates.forEach((pop) => {
-                if (pop.markForSkip) {
-                    return;
-                }
-                const pathProp = pop.pathProp || pop.path;
-                const property = Helpers.getOneLevelNestedProperties(pathProp, doc);
-                if (Array.isArray(property)) {
-                    property.forEach((p) => {
-                        maps[pop.business].ids[p] = 1;
-                    });
-                } else if (property) {
-                    maps[pop.business].ids[property] = 1;
-                }
-            });
-        });
-        for (let modelBusiness in maps) {
-            if (!maps.hasOwnProperty(modelBusiness)) {
-                continue;
-            }
-            const business: any = global.businessRegistry[modelBusiness];
-            if (!business) {
-                throw new ResponseError("BusinessNotFound", modelBusiness + " not registered");
-            }
-            const deepPopulates: IPopulate[] = [];
-            Object.values(maps[modelBusiness].populate).forEach((popArray: IPopulate[]) => {
-                if (!popArray.length) {
-                    return;
-                }
-                popArray.forEach((p) => deepPopulates.push(p));
-            });
-            const deepPopulate = !!deepPopulates.length;
-            const terms = Query.mimic(st)
-                .setPaging(1, -1)
-                .setFilter(maps[modelBusiness].prop, Object.keys(maps[modelBusiness].ids));
-            if (maps[modelBusiness].filters) {
-                for (let f in maps[modelBusiness].filters) {
-                    if (maps[modelBusiness].filters.hasOwnProperty(f)) {
-                        terms.setFilter(f, maps[modelBusiness].filters[f]);
-                    }
-                }
-            }
-            if (st.options.lean) {
-                terms.setLean(true);
-            }
-            if (maps[modelBusiness].select?.length) {
-                if (maps[modelBusiness].prop && !maps[modelBusiness].select.includes(maps[modelBusiness].prop)) {
-                    maps[modelBusiness].select.push(maps[modelBusiness].prop);
-                }
-                const select = uniq(maps[modelBusiness].select).join(" ");
-                terms.select(select);
-            }
-            if (deepPopulate) {
-                terms.checkPopulate(deepPopulates);
-            }
-            const businessInstance: IBusinessBase = new business();
-            if (st.token) {
-                businessInstance.addToken(st.token);
-            }
-            const results: any[] = await businessInstance.find(terms);
-            results.forEach((result: any) => {
-                const key = Helpers.getNestedFieldValue(maps[modelBusiness].prop, result);
-                maps[modelBusiness].docs[key] = result;
-            });
-        }
-        docs.forEach((doc) => {
-            populates.forEach((pop) => {
-                if (pop.markForSkip) {
-                    return;
-                }
-                const pathProp = pop.pathProp || pop.path;
-                let value: Record<string, any> = {};
-                let isArray = false;
-                const property = Helpers.getOneLevelNestedProperties(pathProp, doc);
-                if (Array.isArray(property)) {
-                    isArray = true;
-                    property.forEach((p) => {
-                        if (maps[pop.business].docs[p]) {
-                            value[p] = maps[pop.business].docs[p];
-                        } else {
-                            value[p] = p;
-                        }
-                    });
-                } else if (property) {
-                    if (maps[pop.business].docs[property]) {
-                        value[property] = maps[pop.business].docs[property];
-                    } else {
-                        value[property] = property;
-                    }
-                }
-                if (!value || Helpers.isEmptyObject(value)) {
-                    return;
-                }
-                Helpers.setOneLevelNestedProperties(pop.path, doc, value, pathProp, isArray);
-            });
-        });
-        return onlyOne ? docs[0] : docs;
     }
 
-    public static makeFlat(obj: any, nested: string = ""): Record<string, any> {
+    static makeFlat(obj: any, nested: string = "") {
         const result: Record<string, any> = {};
         if (nested) {
             nested += ".";
@@ -626,48 +345,36 @@ export default class Helpers {
             return null;
         }
         Object.keys(obj).forEach((key) => {
-            if (typeof obj[key] === "string" || typeof obj[key] === "number" || typeof obj[key] === "boolean" || typeof obj[key] === "bigint") {
-                result[nested + key] = obj[key];
-                return;
-            }
-            if (Helpers.isObjectId(obj[key]) || (typeof obj[key] === "object" && obj[key]?._bsontype === "ObjectID")) {
-                result[nested + key] = obj[key].toString();
+            if (this.isPrimitive(obj[key]) || this.isSpecialObject(obj[key]) || obj[key] instanceof Date) {
+                if (obj[key] instanceof Date) {
+                    result[nested + key] = obj[key].toString();
+                } else if (typeof obj[key] === "object") {
+                    result[nested + key] = this.specialObjectToString(obj[key]);
+                } else {
+                    result[nested + key] = obj[key];
+                }
                 return;
             }
             if (Array.isArray(obj[key])) {
-                if (Helpers.isObjectId(obj[key]?.[0]) || (typeof obj[key]?.[0] === "object" && obj[key]?.[0]?._bsontype === "ObjectID")) {
-                    result[nested + key] = obj[key].map(k => k.toString());
-                    return;
-                }
                 obj[key].forEach((item) => {
-                    if (typeof item === "string" || typeof item === "number" || typeof item === "boolean" || typeof item === "bigint") {
-                        result[nested + key] = item;
+                    if (this.isPrimitive(item) || this.isSpecialObject(item)) {
+                        if (result[nested + key] === undefined) {
+                            result[nested + key] = [];
+                        }
+                        if (item instanceof Date) {
+                            result[nested + key].push(item.toString());
+                        } else if (typeof item === "object") {
+                            result[nested + key].push(this.specialObjectToString(item));
+                        } else {
+                            result[nested + key].push(item);
+                        }
                         return;
                     }
                     const flat = this.makeFlat(item, nested + key);
                     if (!flat) {
                         return;
                     }
-                    Object.keys(flat).forEach(f => {
-                        if (Array.isArray(flat[f])) {
-                            if (result[f] == undefined) {
-                                result[f] = [];
-                            } else if (!Array.isArray(result[f])) {
-                                const p = result[f];
-                                result[f] = [p];
-                            }
-                            result[f].push(flat[f]);
-                        } else {
-                            if (result[f] == undefined) {
-                                result[f] = flat[f];
-                            } else if (Array.isArray(result[f])) {
-                                result[f].push(flat[f]);
-                            } else {
-                                const p = result[f];
-                                result[f] = [p, flat[f]];
-                            }
-                        }
-                    });
+                    this.mergeObjects(result, flat);
                 });
                 return;
             }
@@ -675,26 +382,7 @@ export default class Helpers {
             if (!flat) {
                 return;
             }
-            Object.keys(flat).forEach(f => {
-                if (Array.isArray(flat[f])) {
-                    if (result[f] == undefined) {
-                        result[f] = [];
-                    } else if (!Array.isArray(result[f])) {
-                        const p = result[f];
-                        result[f] = [p];
-                    }
-                    result[f].push(flat[f]);
-                } else {
-                    if (result[f] == undefined) {
-                        result[f] = flat[f];
-                    } else if (Array.isArray(result[f])) {
-                        result[f].push(flat[f]);
-                    } else {
-                        const p = result[f];
-                        result[f] = [p, flat[f]];
-                    }
-                }
-            });
+            this.mergeObjects(result, flat);
         });
         return result;
     }

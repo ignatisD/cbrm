@@ -5,7 +5,7 @@ import {
     IFilterOp,
     IPopulate, IRequestMetadata, IRequestTerms,
     IQuery,
-    ISearchTermsOptions,
+    IQueryOptions,
     ISearchTermsSortOptions
 } from "../interfaces/helpers/Query";
 import Helpers from "./Helpers";
@@ -37,7 +37,7 @@ export default class Query implements IQuery {
     /**
      * MongoDB search related options
      */
-    public options: ISearchTermsOptions = {
+    public options: IQueryOptions = {
         page: 1,
         limit: global.pagingLimit,
         autopopulate: false,
@@ -65,52 +65,35 @@ export default class Query implements IQuery {
         }
     }
 
-    public static fromRequest(req: Request) {
+    static fromParseRequest(req) {
         const st = new Query();
-        const data: IRequestTerms = {...req.query, ...req.body};
-        const setDeepFilters = data.setDeepFilters;
-        st.setLocale(req.getLocale());
+        const data = {...req.params};
+        let systemInfo = data.systemInfo || {};
+        if (typeof systemInfo === "string") {
+            try { systemInfo = JSON.parse(systemInfo); } catch (e) {}
+        }
+        st.meta = systemInfo || {};
+        st.setLocale(data.lang || st.meta.lang);
+        st.setUserAndToken(req);
+        return st.fromInputs(data);
+    }
+
+    /**
+     *
+     * @param req
+     */
+    static fromRequest(req: Request) {
+        const st = new Query();
+        /* spreading undefined properties does not raise an error */
+        const data = { ...req.query, ...req.body };
         st.meta = Query.requestMeta(req);
-
-        let limit = data.limit === "0" || data.limit === 0 ? -1 : parseInt((data.limit || global.pagingLimit).toString());
-        limit = limit < -1 ? global.pagingLimit : limit;
-
-        st.setPaging(parseInt((data.page || 1).toString()), limit);
-
-        Helpers.isTrue(data.lean) && st.setLean(true);
-        !Helpers.isEmpty(data.fields) && st.select(data.fields);
-
-        if (req.user) {
-            st.setUser(req.user._id);
+        if (typeof req.getLocale === "function") {
+            st.setLocale(req.getLocale());
+        } else if (data.lang) {
+            st.setLocale(data.lang || st.meta.lang);
         }
-        st.setSort(data.sort);
-        st.checkPopulate(data.populate);
-
-        if (Helpers.isTrue(data.debug)) {
-            st.debug = true;
-        }
-        if (data.index) {
-            st.setIndex(data.index);
-        }
-        if (Helpers.isTrue(data.autopopulate)) {
-            st.options.autopopulate = true;
-        }
-        delete data.index;
-        delete data.debug;
-        delete data.autopopulate;
-        delete data.populate;
-        delete data.lang;
-        delete data.page;
-        delete data.limit;
-        delete data.lean;
-        delete data.fields;
-        delete data.sort;
-        delete data.setDeepFilters;
-
-        // Everything else still available in `data` is considered a filter
-        st.setFilters(data, Helpers.isTrue(setDeepFilters));
-
-        return st;
+        st.setUserAndToken(req);
+        return st.fromInputs(data);
     }
 
     /**
@@ -306,6 +289,58 @@ export default class Query implements IQuery {
         };
     }
 
+    public fromInputs(data) {
+        let limit = data.limit === "0" || data.limit === 0 ? -1 : parseInt((data.limit || data._limit || global.pagingLimit).toString());
+        limit = limit < -1 ? global.pagingLimit : limit;
+        this.setPaging(parseInt((data.page || data._page || 1).toString()), limit);
+        if (data.lean && data.lean !== "0" && data.lean !== "false") {
+            this.setLean(true);
+        }
+        if (!(data.fields === undefined || data.fields === null || data.fields === "")) {
+            this.select(data.fields);
+        } else if (data._select) {
+            this.select(data._select);
+        }
+        this.setSort(data.sort || data._sort);
+        this.checkPopulate(data.populate);
+        if (data.debug && data.debug !== "0" && data.debug !== "false") {
+            this.debug = true;
+        }
+        if (data.index) {
+            this.setIndex(data.index);
+        }
+        if (data.autopopulate && data.autopopulate !== "0" && data.autopopulate !== "false") {
+            this.options.autopopulate = true;
+        }
+        const setDeepFilters = data.setDeepFilters && data.setDeepFilters !== "0" && data.setDeepFilters !== "false";
+        delete data.debug;
+        delete data.autopopulate;
+        delete data.populate;
+        delete data.lean;
+        delete data.setDeepFilters;
+        delete data.lang;
+        delete data.index;
+
+        delete data.fields;
+        delete data.limit;
+        delete data.page;
+        delete data.sort;
+
+        delete data.systemInfo;
+        delete data._select;
+        delete data._limit;
+        delete data._page;
+        delete data._sort;
+
+        if (data._search) {
+            this.search("_search", data._search, "$text");
+        }
+        delete data._search;
+        // Everything else still available in `data` is considered a filter
+        this.setFilters(data, setDeepFilters);
+        return this;
+    }
+
     public advancedFilters(toFilter = {}) {
         for (let key in toFilter) {
             if (!toFilter.hasOwnProperty(key)) {
@@ -329,30 +364,34 @@ export default class Query implements IQuery {
         }
         return this;
     }
+
     /**
      * Pass a comma separated fields you want for projection
      */
     public select(fields: string|string[] = "") {
-        const projection = {};
-        if (!Array.isArray(fields)) {
+        let projection = {};
+        let selects = [];
+        if (typeof fields === "string") {
             let delimiter = ",";
             if (!/,/.test(fields)) {
                 delimiter = " ";
             }
-            fields = fields.split(delimiter);
+            selects = fields.split(delimiter);
+        } else if (Array.isArray(fields)) {
+            selects = fields.filter(f => typeof f === "string");
         }
-
-        fields.map((field: string) => {
+        selects.map((field) => {
             field = field.trim();
             if (field.startsWith("-")) {
                 field = field.replace("-", "");
                 projection[field] = 0;
-            } else {
+            }
+            else {
                 projection[field] = 1;
             }
         });
-        this.projection = Object.keys(projection).length ? projection : null;
-        this.projection = Query.fixProjection(this.projection);
+        projection = Object.keys(projection).length ? projection : null;
+        this.projection = Query.fixProjection(projection);
         return this;
     }
 
@@ -369,15 +408,20 @@ export default class Query implements IQuery {
     }
 
     public limit(limit: number) {
-        this.options.limit = limit;
+        this.options.limit = Math.ceil(Math.abs(limit));
+        if (!this.options.limit) {
+            return this;
+        }
+        this.options.page = Math.ceil((this.options.offset || 0) / this.options.limit) + 1;
         return this;
     }
 
     public skip(offset: number) {
+        this.options.offset = Math.ceil(Math.abs(offset));
         if (!this.options.limit) {
-            return;
+            return this;
         }
-        this.options.page = Math.ceil(offset / this.options.limit) + 1;
+        this.options.page = Math.ceil((this.options.offset || 0) / this.options.limit) + 1;
         return this;
     }
 
@@ -451,6 +495,11 @@ export default class Query implements IQuery {
         return this;
     }
 
+    public fullText(key: string, value: string) {
+        this.search(key, value, "$text");
+        return this;
+    }
+
 
     /**
      * Required to upgrade to MongoDB >= 4.4
@@ -504,11 +553,13 @@ export default class Query implements IQuery {
                 popByPath[pop.path] = {
                     path: pop.path,
                     pathProp: pop.pathProp,
+                    pointer: pop.pointer,
 
                     select: pop.select,
                     populate: [],
 
                     business: pop.business,
+                    multiple: pop.multiple,
                     prop: pop.prop,
                     filters: pop.filters,
                     markForSkip: pop.markForSkip,
@@ -528,9 +579,11 @@ export default class Query implements IQuery {
             const finalPop: IPopulate = {
                 path: path,
                 pathProp: temp.pathProp,
+                pointer: temp.pointer,
                 select: "",
                 populate: [],
                 business: temp.business,
+                multiple: temp.multiple,
                 prop: temp.prop,
                 filters: temp.filters,
                 markForSkip: temp.markForSkip,
@@ -574,6 +627,12 @@ export default class Query implements IQuery {
             }
             if (!finalPop.filters) {
                 delete finalPop.filters;
+            }
+            if (!finalPop.pointer) {
+                delete finalPop.pointer;
+            }
+            if (typeof finalPop.multiple === "undefined") {
+                delete finalPop.multiple;
             }
             if (!finalPop.markForSkip) {
                 delete finalPop.markForSkip;
@@ -664,7 +723,15 @@ export default class Query implements IQuery {
     }
 
     public setIndex(index: string = "") {
-        this.index = index;
+        this.index = (index || "").toLowerCase();
+        return this;
+    }
+
+    /**
+     * Set a raw query for use by elasticsearch
+     */
+    public setRaw(raw) {
+        this.raw = raw;
         return this;
     }
 
@@ -697,6 +764,19 @@ export default class Query implements IQuery {
             if (token) {
                 this.token = token;
             }
+        }
+        return this;
+    }
+    public setUserAndToken(req: Request|any) {
+        if (req.user && typeof req.user === "object") {
+            this.setUser((req.user.id || req.user._id || req.user.objectId));
+        } else if (req.userId) {
+            this.setUser(req.userId);
+        }
+        if (req.sessionToken) {
+            this.setToken(req.sessionToken);
+        } else if (req.user && typeof req.user.getSessionToken === "function") {
+            this.setToken(req.user.getSessionToken());
         }
         return this;
     }
@@ -914,6 +994,11 @@ export default class Query implements IQuery {
                     "$regex": new RegExp(`(^|\\s)${value}.*`)
                 }
             };
+            this.pushFilter({
+                key: key,
+                value: value,
+                op: "$text"
+            });
         } else {
             this.filters[key] = {
                 "$regex": new RegExp(`(^|\\s)${value}.*`)
@@ -921,12 +1006,12 @@ export default class Query implements IQuery {
             if (modifiers) {
                 this.filters[key].$options = modifiers;
             }
+            this.pushFilter({
+                key: key,
+                value: ".*" + value + ".*",
+                op: "$regex"
+            });
         }
-        this.pushFilter({
-            key: key,
-            value: ".*" + value + ".*",
-            op: "$regex"
-        });
         return this;
     }
 

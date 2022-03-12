@@ -1,7 +1,6 @@
-import { QueryPopulateOptions } from "mongoose";
 import { ReadPreference } from "./ReadPreference";
 
-export type IFilterOp = "$nested"|"$or"|"$and"|"$nin"|"$in"|"$ne"|"$gte"|"$gt"|"$lt"|"$lte"|"$eq"|"$regex"|"$exists"|"$elemMatch"|"$bool";
+export type IFilterOp = "$nested"|"$or"|"$and"|"$nin"|"$in"|"$ne"|"$gte"|"$gt"|"$lt"|"$lte"|"$eq"|"$regex"|"$exists"|"$elemMatch"|"$bool"|"$text";
 export interface IFilter {
     key: string;
     value: any;
@@ -10,7 +9,7 @@ export interface IFilter {
 export interface ISearchTermsSortOptions {
     multiLangFields: string[];
 }
-export interface IPopulate extends QueryPopulateOptions {
+export interface IPopulate {
     path: string; // the path to populate
     pathProp?: string; // used as an alternative path to get the actual property value
 
@@ -21,12 +20,16 @@ export interface IPopulate extends QueryPopulateOptions {
     index?: string;
     prop?: string; // used together along with filters to search by another property instead of the default _id
     filters?: any; // extra filters used in custom populate
+    multiple?: string; // Allow multiple results
     match?: any; // extra filters for mongoose
+    options?: any; // optional query options like sort, limit, etc
     model?: string; // Model name to be able to populate an object with mongoose
+    pointer?: string; // Model name to be able to populate an object with mongoose
+
     markForSkip?: boolean;
     strictPopulate?: boolean;
 }
-export interface ISearchTermsOptions {
+export interface IQueryOptions {
     select?: string;
     collation?: any;
     language?: string;
@@ -67,7 +70,7 @@ export interface IQuery {
     opFilters?: IFilter[];
     raw?: any;
     projection?: any;
-    options?: ISearchTermsOptions;
+    options?: IQueryOptions;
 }
 
 export interface IRequestMetadata {

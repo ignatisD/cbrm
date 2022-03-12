@@ -5,4 +5,5 @@ export default interface IRepository {
     modelName: string;
     repoUser: any;
     addUser: (user: Partial<IUser>, socket?: string|string[]) => this;
+    populate: (docs: any, st: any) => any;
 }
