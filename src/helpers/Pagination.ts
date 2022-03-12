@@ -1,5 +1,6 @@
 import IPaginatedResults from "../interfaces/helpers/PaginatedResults";
 import IError from "../interfaces/helpers/Error";
+import { IQuery, IQueryOptions } from "../interfaces/helpers/Query";
 
 export default class Pagination<T = any> implements IPaginatedResults<T> {
 
@@ -177,5 +178,10 @@ export default class Pagination<T = any> implements IPaginatedResults<T> {
         this.page = 1;
         this.clear();
         return this;
+    }
+    
+    static fromQuery(q: IQuery, total?: number) {
+        const options: IQueryOptions = q?.options || {page: 1, limit: total};
+        return new Pagination().setTotal(total).setPage(options.page || 1).setLimit(options.limit || global.pagingLimit);
     }
 }

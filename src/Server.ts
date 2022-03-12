@@ -17,6 +17,7 @@ import * as v8 from "v8";
 
 // Interfaces
 import { IConnector } from "./interfaces/helpers/Connector";
+import { IServerConfiguration } from "./interfaces/helpers/ServerConfiguration";
 import IRoute from "./interfaces/helpers/Route";
 
 // Set Logger
@@ -30,7 +31,6 @@ import { IMailerOptions, Mailer } from "./helpers/Mailer";
 import Queue from "./helpers/Queue";
 import Route from "./helpers/Route";
 import JsonResponse from "./helpers/JsonResponse";
-import { IServerConfiguration } from "./helpers/ServerConfiguration";
 
 /**
  * Server class

@@ -9,7 +9,7 @@ import IRepository from "../interfaces/repository/Repository";
 import { Doc } from "../interfaces/models/Document";
 import INotification from "../interfaces/helpers/Notification";
 import IUser from "../interfaces/models/User";
-import { IRequestMetadata, IQuery } from "../interfaces/helpers/Query";
+import { IQuery, IRequestMetadata } from "../interfaces/helpers/Query";
 import { NewAble } from "../interfaces/helpers/NewAble";
 // Helpers
 import JsonResponse from "../helpers/JsonResponse";
@@ -18,7 +18,6 @@ import QueuedJob from "../helpers/QueuedJob";
 import Sockets from "../helpers/Sockets";
 import Query from "../helpers/Query";
 import { Tubes } from "../helpers/Tubes";
-import Helpers from "../helpers/Helpers";
 import IError from "../interfaces/helpers/Error";
 import Logger from "../helpers/Logger";
 
@@ -282,13 +281,7 @@ export default abstract class Business<T = any> implements IBusinessLike {
 
     public addTransaction(session: any): void {}
 
-    async populate(docs: T, st: IQuery): Promise<T>;
-    async populate(docs: T[], st: IQuery): Promise<T[]>;
-    async populate(docs: T[]|T, st: IQuery) {
-        if (this._token) {
-            st.token = this._token;
-        }
-        return Helpers.populate(docs, st);
+    public populate(docs: T[]|T, st: IQuery) {
+        return this._repo?.populate?.(docs, st);
     }
-
 }
