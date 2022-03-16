@@ -10,14 +10,15 @@
         "allowSyntheticDefaultImports": true,
         "typeRoots": [
             "./node_modules/@types",
-            "./interfaces/types"
+            "./src/@types"
         ]
     },
     "include": [
-        "./**/*"
+        "./src/index.ts"
     ],
     "exclude": [
         "./node_modules",
-        "./lib"
+        "./lib",
+        "./tests/**/*",
     ]
 }

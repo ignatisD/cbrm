@@ -1,11 +1,11 @@
-import IMapping, { IMappingProperty } from "../interfaces/helpers/Mapping";
+import { IMapping, IMappingProperty } from "../interfaces/helpers/Mapping";
 
 /**
  * Generate mapping
  * @param {Object} schema - mongoose schema
  * @returns {Object}
  */
-function generate(schema): IMapping {
+export function generate(schema): IMapping {
     const mapping: IMapping = {};
     const typeKey = getTypeKey(schema);
     const defaultTypes = getDefault();
@@ -160,5 +160,3 @@ function getDefault() {
         string: "string",
     };
 }
-
-export default generate;

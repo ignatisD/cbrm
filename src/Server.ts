@@ -17,46 +17,48 @@ import * as v8 from "v8";
 
 // Interfaces
 import { IConnector } from "./interfaces/helpers/Connector";
-import { IServerConfiguration } from "./interfaces/helpers/ServerConfiguration";
-import IRoute from "./interfaces/helpers/Route";
+import { IRoute } from "./interfaces/helpers/Route";
+import { GlobalConfiguration } from "./interfaces/helpers/GlobalConfiguration";
 
 // Set Logger
-import Logger from "./helpers/Logger";
+import { Logger } from "./helpers/Logger";
 
 
 // Modules | Keep Sorted By Variable Name
-import Authenticator from "./helpers/Authenticator";
-import Helpers from "./helpers/Helpers";
+import { Authenticator } from "./helpers/Authenticator";
+import { Helpers } from "./helpers/Helpers";
 import { IMailerOptions, Mailer } from "./helpers/Mailer";
-import Queue from "./helpers/Queue";
-import Route from "./helpers/Route";
-import JsonResponse from "./helpers/JsonResponse";
+import { Queue } from "./helpers/Queue";
+import { Configuration } from "./helpers/Configuration";
+import { Route } from "./helpers/Route";
+import { JsonResponse } from "./helpers/JsonResponse";
+import { Redis } from "./helpers/Redis";
 
 /**
  * Server class
  * @param envFile Is the path of the environmental variables file
  */
-export default class Server {
+export class Server<T extends GlobalConfiguration = GlobalConfiguration> {
 
     protected static authenticator: typeof Authenticator = null;
     static up: boolean = false;
     // Keep Sorted By Variable Name
     public app: express.Application;
-    public cors: any;
-    public port: number;
-    public serverName: any;
-    public useSSL: boolean;
-    public sslDir: string;
+    public cors: string[] = ["*"];
+    public port: number = 3000;
+    public serverName: string = "localhost";
+    public useSSL: boolean = false;
+    public sslDir: string = "/etc/ssl";
     public serverTimeout: number = 300000; // 5 minutes
 
     protected _secret: string = "01A10A01A10A01A10A01A10A";
-    protected _logFormat: string = "";
+    protected _logFormat: string = ":real_ip - :remote-user [:date[clf]] \":method :url HTTP/:http-version\" :status :res[content-length] \":referrer\" \":user-agent\"";
     protected _server: http.Server|https.Server = null;
     protected _dbPromise: Promise<any> = new Promise(() => void 0);
     protected _connector: IConnector = null;
-    protected readonly _configuration: IServerConfiguration;
+    protected readonly _configuration: Configuration<T>;
 
-    constructor(configuration: IServerConfiguration) {
+    constructor(configuration: Configuration<T>) {
         this._configuration = configuration;
     }
 
@@ -64,12 +66,12 @@ export default class Server {
         this.authenticator = authenticator;
     }
 
-    public static bootstrap(configuration: IServerConfiguration): Promise<Server> {
-        return new this(configuration).init();
+    public static bootstrap<G extends GlobalConfiguration>(configuration: Configuration<G>): Promise<Server<G>> {
+        return new this<G>(configuration).init();
     }
 
-    public static test(configuration: IServerConfiguration): Server {
-        const server = new this(configuration);
+    public static test<G extends GlobalConfiguration>(configuration: Configuration<G>): Server<G> {
+        const server = new this<G>(configuration);
         server.env();
         server.configure();
         return server;
@@ -85,18 +87,43 @@ export default class Server {
         return new Promise(() => void 0);
     }
 
+    public setupRedis() {
+        const redisOptions = Redis.config(process.env.REDIS_HOST || "redis", process.env.REDIS_PORT, process.env.REDIS_MONITOR, process.env.REDIS_HOSTS);
+        redisOptions.apiName = this.config.get("apiName");
+        this.config.set("Redis", redisOptions);
+    }
+
+    public mailerSetup() {
+        const mailOptions: IMailerOptions = {
+            host: process.env.SMTP_HOST,
+            port: process.env.SMTP_PORT ? parseInt(process.env.SMTP_PORT) : 465
+        };
+        if (process.env.SMTP_SECURE) {
+            mailOptions.secure = true;
+        }
+        if (process.env.SMTP_AUTH_USER && process.env.SMTP_AUTH_PASS) {
+            mailOptions.user = process.env.SMTP_AUTH_USER;
+            mailOptions.pass = process.env.SMTP_AUTH_PASS;
+        }
+        this.config.set("appEmail", process.env.APP_EMAIL);
+        this.config.set("appName", process.env.APP_NAME);
+        return Mailer.setup(mailOptions);
+    }
+
     public i18nStart() {
-        if (!this.config.languageOptions) {
+        if (!this.config.has("languageOptions")) {
             return;
         }
-        if (this.config.languageOptions === true) {
-            this.config.languageOptions = require("./config/languageOptions");
+        let languageOptions = this.config.get("languageOptions", {});
+        if (this.config.get("useDefaultLanguageOptions", false) === true) {
+            languageOptions = require("./config/languageOptions").languageOptions;
+            this.config.set("languageOptions", languageOptions);
         }
-        global.languages = this.config.languageOptions.locales;
-        global.requiredLanguages = this.config.languageOptions.requiredLanguages;
-        global.defaultLanguage = this.config.languageOptions.defaultLocale;
-        global.fallbackLanguage = this.config.languageOptions.fallbackLocale;
-        i18n.configure(this.config.languageOptions);
+        this.config.set("languages", languageOptions.locales);
+        this.config.set("requiredLanguages", languageOptions.requiredLanguages);
+        this.config.set("defaultLanguage", languageOptions.defaultLocale || "en");
+        this.config.set("fallbackLanguage", languageOptions.fallbackLocale);
+        i18n.configure(languageOptions);
         this.app.use(i18n.init);
     }
 
@@ -131,14 +158,16 @@ export default class Server {
     }
 
     public bootstrapWorkers() {
-        Logger.debug("Starting queues");
-        Queue.bootstrap(global.isMainWorker ? this.app : null);
+        if (this.config.get("queues") && this.config.has("Redis")) {
+            Logger.debug("Starting queues");
+            Queue.bootstrap(this.config.get("Redis", {}), this.config.get("isMainWorker", false) ? this.app : null);
+        }
     }
 
     public async workersListen() {
-        if (global.isWorker) {
+        if (this.config.get("queues") && this.config.has("Redis") && this.config.get("isWorker", false)) {
             await this._dbPromise;
-            Queue.workersListen();
+            Queue.workersListen(this.config.get("isMainWorker", false));
             Logger.success("Workers are listening");
         }
     }
@@ -178,48 +207,36 @@ export default class Server {
 
     public env() {
         // Load environment variables from .env file, where API keys and passwords are configured.
-        dotenv.config({path: this.config.envFile});
-        global.envFile = this.config.envFile;
-        global.prefix = process.env.PREFIX || "dev";
-        global.buildNumber = process.env.BUILD || "build-dev";
-
-        this.port = parseInt(process.env.NODE_PORT || "3000");
-        this.serverName = process.env.SERVER_NAME || "localhost";
-        this.serverTimeout = parseInt(process.env.SERVER_TIMEOUT || "300000");
-        this.cors = (process.env.CORS_URLS || "*").split(",");
-        this.useSSL = Helpers.isTrue(process.env.USE_SSL);
-        this.sslDir = process.env.SSL_DIR || "/etc/ssl";
-        this._secret = process.env.SECRET_OR_KEY || "01A10A01A10A01A10A01A10A";
-        this._logFormat = process.env.LOG_FORMAT || ":real_ip - :remote-user [:date[clf]] \":method :url HTTP/:http-version\" :status :res[content-length] \":referrer\" \":user-agent\"";
-
-        global.isDevMode = process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test";
-        global.isWorker = global.isDevMode || process.env.NODE_ENV === "worker";
-        global.isMainWorker = global.isDevMode || process.env.NODE_TYPE === "main-worker";
-        global.API = this.config.apiName || "cbrm";
+        dotenv.config({path: this.config.get("envFile", ".env")});
     }
 
     public configure() {
-        require("events").EventEmitter.defaultMaxListeners = 100;
-        const mailOptions: IMailerOptions = {
-            host: process.env.SMTP_HOST,
-            port: process.env.SMTP_PORT ? parseInt(process.env.SMTP_PORT) : 465
-        };
-        if (process.env.SMTP_SECURE) {
-            mailOptions.secure = true;
-        }
-        if (process.env.SMTP_AUTH_USER && process.env.SMTP_AUTH_PASS) {
-            mailOptions.user = process.env.SMTP_AUTH_USER;
-            mailOptions.pass = process.env.SMTP_AUTH_PASS;
-        }
-        global.Mailer = Mailer.setup(mailOptions);
-        global.ServerRoot = path.resolve(__dirname);
-        global.ViewsRoot = path.join(__dirname, "../views");
-        global.pagingLimit = 100;
         Logger.setStatics(process.env.DEBUG !== "false", `${process.env.NODE_ENV}@${process.env.HOSTNAME}`);
+        require("events").EventEmitter.defaultMaxListeners = 100;
 
-        // Initialize Languages
+        this.port = parseInt(process.env.NODE_PORT || "3000");
+        this.serverName = process.env.SERVER_NAME || this.serverName;
+        this.serverTimeout = parseInt(process.env.SERVER_TIMEOUT || "300000");
+        this.cors = (process.env.CORS_URLS || "*").split(",");
+        this.useSSL = Helpers.isTrue(process.env.USE_SSL);
+        this.sslDir = process.env.SSL_DIR || this.sslDir;
+        this._secret = process.env.SECRET_OR_KEY || this._secret;
+        this._logFormat = process.env.LOG_FORMAT || this._logFormat;
 
-        global.businessRegistry = {};
+        this.config.set("prefix", process.env.PREFIX || "dev");
+        this.config.set("buildNumber", process.env.BUILD || "build-dev");
+        this.config.set("isDevMode", process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test");
+        this.config.set("isWorker", this.config.get("isDevMode", false) || process.env.NODE_ENV === "worker");
+        this.config.set("isMainWorker", this.config.get("isDevMode", false) || process.env.NODE_TYPE === "main-worker");
+        this.config.set("ServerRoot", path.resolve(__dirname));
+        this.config.set("ViewsRoot", path.join(__dirname, "../views"));
+        this.config.set("pagingLimit", 100);
+        if (process.env.SMTP_HOST) {
+            this.mailerSetup();
+        }
+        if (process.env.REDIS_HOST) {
+            this.setupRedis();
+        }
     }
 
     public async express() {
@@ -228,10 +245,12 @@ export default class Server {
             this.app.use(new Server.authenticator(this._secret).initialize());
         }
 
-        this.app.set("views", path.join(__dirname, "../views"));
-        this.app.set("view engine", "pug");
+        if (this.config.has("ViewsRoot")) {
+            this.app.set("views", this.config.get("ViewsRoot"));
+            this.app.set("view engine", "pug");
+        }
         // Global RenderHTML fro pug templates
-        global.renderHTML = Helpers.renderHTML(this.app);
+        this.config.set("renderHTML", Helpers.renderHTML(this.app));
 
         // Express configuration.
         this.app.set("port", this.port);
@@ -253,9 +272,9 @@ export default class Server {
         this.app.use(cors({
             origin: (origin, cb) => cb(null, this.cors.includes("*") || this.cors.includes(origin)),
             credentials: true,
-            exposedHeaders: this.config.corsHeaders || [
+            exposedHeaders: this.config.get("corsHeaders", [
                 "x-build-number"
-            ]
+            ])
         }));
         logger.token<express.Request>("real_ip", (req, res) => {
             return Helpers.requestIp(req);
@@ -267,7 +286,7 @@ export default class Server {
             }
         }));
         this.app.use(cookieParser());
-        this.app.use(bodyParser.json({limit: "50mb"}));
+        this.app.use(bodyParser.json({limit: this.config.get("bodyLimit",  "50mb")}));
         this.app.use(bodyParser.urlencoded({extended: true}));
 
 
@@ -275,16 +294,17 @@ export default class Server {
 
         this.app.use((req, res, next) => {
             let locale: string;
-            if (req.query.lang && global.languages.indexOf(req.query.lang.toString()) !== -1) {
+            const languages = this.config.get("languages", []);
+            if (req.query.lang && languages.indexOf(req.query.lang.toString()) !== -1) {
                 locale = req.query.lang.toString();
-            } else if (req.query.l && global.languages.indexOf(req.query.l.toString()) !== -1) {
+            } else if (req.query.l && languages.indexOf(req.query.l.toString()) !== -1) {
                 locale = req.query.l.toString();
-            } else if (req.cookies.lang && global.languages.indexOf(req.cookies.lang.toString()) !== -1) {
+            } else if (req.cookies.lang && languages.indexOf(req.cookies.lang.toString()) !== -1) {
                 locale = req.cookies.lang.toString();
-            } else if (req.headers["x-lang"] && global.languages.indexOf(req.headers["x-lang"].toString()) !== -1) {
+            } else if (req.headers["x-lang"] && languages.indexOf(req.headers["x-lang"].toString()) !== -1) {
                 locale = req.headers["x-lang"].toString();
             } else {
-                locale = Helpers.getLangByReferer(req.headers.referer) || global.defaultLanguage;
+                locale = Helpers.getLangByReferer(req.headers.referer) || this.config.get("defaultLanguage", "en");
             }
             req.setLocale(locale);
 
@@ -338,7 +358,7 @@ export default class Server {
         this._server.timeout = this.serverTimeout;
 
         this._server.on("listening", () => {
-            Logger.success(`  App is running at http://${global.API}:${this.port} in ${process.env.NODE_ENV} mode`);
+            Logger.success(`  App is running at http://${this.config.get("apiName", "cbrm")}:${this.port} in ${process.env.NODE_ENV} mode`);
             Logger.debug("  Press CTRL+C to stop");
         });
 

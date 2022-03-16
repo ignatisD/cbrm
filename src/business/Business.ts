@@ -4,24 +4,26 @@ import { performance } from "perf_hooks";
 import { pick } from "lodash";
 import { Request } from "express";
 // Interfaces
-import IBusinessLike from "../interfaces/business/BusinessLike";
-import IRepository from "../interfaces/repository/Repository";
+import { IBusinessLike } from "../interfaces/business/BusinessLike";
+import { IRepository } from "../interfaces/repository/Repository";
 import { Doc } from "../interfaces/models/Document";
-import INotification from "../interfaces/helpers/Notification";
-import IUser from "../interfaces/models/User";
+import { INotification } from "../interfaces/helpers/Notification";
+import { IUser } from "../interfaces/models/User";
 import { IQuery, IRequestMetadata } from "../interfaces/helpers/Query";
 import { NewAble } from "../interfaces/helpers/NewAble";
 // Helpers
-import JsonResponse from "../helpers/JsonResponse";
-import NotificationMailer from "../mailers/NotificationMailer";
-import QueuedJob from "../helpers/QueuedJob";
-import Sockets from "../helpers/Sockets";
-import Query from "../helpers/Query";
+import { JsonResponse } from "../helpers/JsonResponse";
+import { NotificationMailer } from "../mailers/NotificationMailer";
+import { QueuedJob } from "../helpers/QueuedJob";
+import { Sockets } from "../helpers/Sockets";
+import { Query } from "../helpers/Query";
 import { Tubes } from "../helpers/Tubes";
-import IError from "../interfaces/helpers/Error";
-import Logger from "../helpers/Logger";
+import { IError } from "../interfaces/helpers/Error";
+import { Logger } from "../helpers/Logger";
+import { Registry } from "../helpers/Registry";
+import { Configuration } from "../helpers/Configuration";
 
-export default abstract class Business<T = any> implements IBusinessLike {
+export class Business<T = any> implements IBusinessLike {
 
     protected _token: string;
     protected _uniqueId: string;
@@ -32,16 +34,18 @@ export default abstract class Business<T = any> implements IBusinessLike {
     protected _start: number;
     protected _heap: number;
     protected _repo: IRepository;
+    protected _global: Configuration<any>;
 
     public tube: string;
     public nextTube: string;
     public job: Job;
     public meta: IRequestMetadata;
 
-    protected constructor(repo: IRepository = null) {
+    constructor(repo: IRepository = null) {
         this._repo = repo;
         this.tube = Tubes.NORMAL;
         this.nextTube = Tubes.NORMAL;
+        this._global = Configuration.instance();
     }
 
     public get modelName() {
@@ -283,5 +287,13 @@ export default abstract class Business<T = any> implements IBusinessLike {
 
     public populate(docs: T[]|T, st: IQuery) {
         return this._repo?.populate?.(docs, st);
+    }
+
+    public async find(...args: any) {
+        return [];
+    }
+
+    public static registerGlobally(): void {
+        Registry.set(this.name, this);
     }
 }

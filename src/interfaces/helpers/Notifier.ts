@@ -1,5 +1,5 @@
-import INotification from "./Notification";
-import IResponse from "./Response";
+import { INotification } from "./Notification";
+import { IResponse } from "./Response";
 
 export interface INotifier {
     send: () => Promise<IResponse>;

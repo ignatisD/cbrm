@@ -1,9 +1,9 @@
 import { Job } from "bull";
 import { Request } from "express";
-import INotification from "../helpers/Notification";
+import { INotification } from "../helpers/Notification";
 import { IRequestMetadata } from "../helpers/Query";
 
-export default interface IBusinessLike {
+export interface IBusinessLike {
     debug: any;
     modelName: string;
     uniqueId: string;
@@ -27,6 +27,7 @@ export default interface IBusinessLike {
     addTransaction: (session: any) => void;
     exception: (...args: any) => void;
     populate: (docs: any, st: any) => any;
+    find: (...args: any) => any;
 }
 
 export interface IBusinessRegistry<T extends IBusinessLike> {

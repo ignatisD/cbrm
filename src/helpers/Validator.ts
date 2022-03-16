@@ -7,25 +7,26 @@ import {
     validationResult,
     param,
     query,
-    ValidationError
-} from "express-validator/check";
-import ResponseError from "./ResponseError";
+    ValidationError,
+    sanitize, sanitizeBody, sanitizeParam, sanitizeQuery, SanitizationChain
+} from "express-validator";
+import { ResponseError } from "./ResponseError";
 import { NextFunction, Request, RequestHandler, Response } from "express";
-import { sanitize, sanitizeBody, sanitizeParam, sanitizeQuery, SanitizationChain } from "express-validator/filter";
-import JsonResponse from "./JsonResponse";
+import { JsonResponse } from "./JsonResponse";
 
 /**
  * A Validator class with static methods from express-validator
  */
-export default class Validator {
+export class Validator {
 
+    static redacted = ["password", "passwordConfirm"];
     /**
      * Formatter of the validation error
      * @param {ValidationError} error
      * @returns {ResponseError}
      */
     static errorFormatter(error: ValidationError) {
-        if (error.param === "password" || error.param === "passwordConfirm") {
+        if (this.redacted.indexOf(error.param) !== -1) {
             error.value = "******";
         }
         return new ResponseError(error.param, error.msg, error);

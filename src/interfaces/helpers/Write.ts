@@ -1,4 +1,4 @@
-export default interface IWrite<T> {
+export interface IWrite<T> {
     create: (item: Partial<T>|any) => Promise<T|any>;
     createMany: (items: (Partial<T>|any)[], props?: any) => Promise<any>;
     insertMany: (items: (Partial<T>|any)[]) => Promise<(T[]|any)>;

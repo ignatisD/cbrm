@@ -9,7 +9,7 @@ export interface IMappingProperty {
     enum?: [string | number];
 }
 
-export default interface IMapping {
+export interface IMapping {
     [key: string]: IMappingProperty;
 }
 

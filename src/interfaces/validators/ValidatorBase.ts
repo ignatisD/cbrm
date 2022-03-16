@@ -2,7 +2,7 @@ import { RequestHandler } from "express";
 
 export type IValidationChain = (RequestHandler|RequestHandler[])[];
 
-export default interface IValidatorBase {
+export interface IValidatorBase {
     required: IValidationChain;
     create: IValidationChain;
     retrieve: IValidationChain;

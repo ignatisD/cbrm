@@ -6,8 +6,9 @@ import { Request, Application } from "express";
 import { URL } from "url";
 import { renderFile } from "pug";
 import { Doc } from "../interfaces/models/Document";
+import { Configuration } from "./Configuration";
 
-export default class Helpers {
+export class Helpers {
 
     public static requestException(e: any) {
         delete e.options;
@@ -38,7 +39,7 @@ export default class Helpers {
     }
 
     public static multilangField (field: string): string[] {
-        return global.languages?.map(lng => `${field}.${lng}`);
+        return Configuration.get("languages", []).map(lng => `${field}.${lng}`);
     }
 
     static elapsed(started: number): string {
@@ -390,9 +391,9 @@ export default class Helpers {
     public static getLangByReferer(url: string) {
         try {
             const pathname = new URL(url).pathname;
-            const pattern = new RegExp("^\/(" + global.languages.join("|") + ")\/");
+            const pattern = new RegExp("^\/(" + Configuration.get("languages", []).join("|") + ")\/");
             const languageResults = pattern.exec(pathname);
-            if (languageResults && global.languages.includes(languageResults[1])) {
+            if (languageResults && Configuration.get("languages", []).includes(languageResults[1])) {
                 return languageResults[1];
             } else {
                 return null;

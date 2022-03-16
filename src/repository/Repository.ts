@@ -1,13 +1,14 @@
 import { flatten, get, pick, reduce, set, uniq } from "lodash";
-import IRepository from "../interfaces/repository/Repository";
+import { IRepository } from "../interfaces/repository/Repository";
 import { IModel } from "../interfaces/models/Model";
-import IUser from "../interfaces/models/User";
+import { IUser } from "../interfaces/models/User";
 import { IPopulate, IQuery } from "../interfaces/helpers/Query";
-import Query from "../helpers/Query";
-import Logger from "../helpers/Logger";
-import IBusinessBase from "../interfaces/business/BusinessBase";
+import { Query } from "../helpers/Query";
+import { Logger } from "../helpers/Logger";
+import { IBusinessLike } from "../interfaces/business/BusinessLike";
+import { Registry } from "../helpers/Registry";
 
-export default abstract class Repository<T extends IModel> implements IRepository {
+export abstract class Repository<T extends IModel> implements IRepository {
 
     protected _user: Partial<IUser>;
     protected _modelName: string;
@@ -238,7 +239,7 @@ export default abstract class Repository<T extends IModel> implements IRepositor
             if (!maps.hasOwnProperty(businessName)) {
                 continue;
             }
-            const business: any = global.businessRegistry[businessName];
+            const business = Registry.get(businessName);
             if (!business) {
                 Logger.warning(businessName + " not registered");
                 continue;
@@ -252,8 +253,8 @@ export default abstract class Repository<T extends IModel> implements IRepositor
             });
             const deepPopulate = !!deepPopulates.length;
             const terms = Query.mimic(st)
-            .setPaging(1, -1)
-            .setFilter(maps[businessName].prop, Object.keys(maps[businessName].ids));
+                .setPaging(1, -1)
+                .setFilter(maps[businessName].prop, Object.keys(maps[businessName].ids));
             if (maps[businessName].filters) {
                 for (let f in maps[businessName].filters) {
                     if (maps[businessName].filters.hasOwnProperty(f)) {
@@ -274,7 +275,7 @@ export default abstract class Repository<T extends IModel> implements IRepositor
             if (deepPopulate) {
                 terms.checkPopulate(deepPopulates);
             }
-            const businessInstance: IBusinessBase = new business();
+            const businessInstance: IBusinessLike = new business();
             if (st.token) {
                 businessInstance.addToken(st.token);
             }

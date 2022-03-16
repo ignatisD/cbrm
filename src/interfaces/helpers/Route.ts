@@ -1,8 +1,8 @@
 import * as express from "express";
-import IController from "../controllers/Controller";
+import { IController } from "../controllers/Controller";
 import { IPermission, IPermissionsConfig } from "../models/Permission";
 
-export default interface IRoute {
+export interface IRoute {
     name?: string;
     path: string;
 

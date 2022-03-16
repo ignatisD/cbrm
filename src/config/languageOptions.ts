@@ -1,9 +1,6 @@
 import * as i18n from "i18n";
-interface ExtraLanguageOptions {
-    fallbackLocale: string;
-    requiredLanguages: string[];
-}
-export const languageOptions: i18n.ConfigurationOptions & ExtraLanguageOptions = {
+import { IExtraLanguageOptions } from "../interfaces/helpers/Multilingual";
+export const languageOptions: i18n.ConfigurationOptions & IExtraLanguageOptions = {
     // setup some locales - other locales default to en silently
     locales: ["el", "en"],
     requiredLanguages: ["el", "en"],

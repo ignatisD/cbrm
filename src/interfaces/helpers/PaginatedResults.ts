@@ -1,4 +1,4 @@
-export default interface IPaginatedResults<T> {
+export interface IPaginatedResults<T> {
     docs: T[];
     total?: number;
     limit?: number;

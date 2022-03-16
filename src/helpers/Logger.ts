@@ -6,7 +6,7 @@ import { LogLevel } from "../interfaces/helpers/LogLevel";
 /**
  * Always remember to update the interface
  */
-export default class Logger {
+export class Logger {
 
     protected static _apm: any = null;
     protected static _debugEnabled: boolean = true;

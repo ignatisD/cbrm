@@ -1,7 +1,7 @@
-import IRoute, { IExtraRoute } from "../interfaces/helpers/Route";
-import IAppRoutes from "../interfaces/routes/AppRoutes";
-import IValidatorBase from "../interfaces/validators/ValidatorBase";
-import IControllerBase from "../interfaces/controllers/ControllerBase";
+import { IRoute, IExtraRoute } from "../interfaces/helpers/Route";
+import { IAppRoutes } from "../interfaces/routes/AppRoutes";
+import { IValidatorBase } from "../interfaces/validators/ValidatorBase";
+import { IControllerBase } from "../interfaces/controllers/ControllerBase";
 import { PermissionLevel } from "../interfaces/models/Permission";
 
 type DefaultRoutes =
@@ -22,7 +22,7 @@ type DefaultRoutes =
     | "count";
 
 // TODO Update this to match the backend's
-export default class RouterBase implements IAppRoutes {
+export class RouterBase implements IAppRoutes {
     protected readonly name: string = "Base";
     protected readonly ctrl: IControllerBase;
     protected validator: IValidatorBase = null;

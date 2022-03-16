@@ -2,10 +2,12 @@ import * as htmlToText from "html-to-text";
 import * as juice from "juice";
 import Mail, { Address, Attachment, Headers } from "nodemailer/lib/mailer";
 import { renderFile } from "pug";
-import JsonResponse from "./JsonResponse";
+import { JsonResponse } from "./JsonResponse";
 import { EmailResponse } from "../interfaces/helpers/EmailResponse";
+import { Mailer } from "./Mailer";
+import { Logger } from "./Logger";
 
-export default class Email implements Mail.Options {
+export class Email implements Mail.Options {
 
     /** The e-mail address of the sender. All e-mail addresses can be plain "sender@server.com" or formatted "Sender Name <sender@server.com>" */
     from: string | Address;
@@ -38,11 +40,8 @@ export default class Email implements Mail.Options {
     /** optional transfer encoding for the textual parts */
     encoding: string;
     priority: "high" | "normal" | "low";
-    /** When true, the email will be send through AWS */
-    aws: boolean;
 
     constructor(opts?: Mail.Options) {
-        this.aws = process.env.NODE_ENV === "production";
         if (opts) {
             const email = JSON.parse(JSON.stringify(opts));
             const body = email.message || email.html || email.text || email.altText;
@@ -112,20 +111,17 @@ export default class Email implements Mail.Options {
         return rendered;
     }
 
-    public send(aws: boolean = false): Promise<JsonResponse<EmailResponse>> {
+    public send(mailer?: Mail): Promise<JsonResponse<EmailResponse>> {
         const response = new JsonResponse<EmailResponse>();
-
-        return global.Mailer
+        mailer = mailer ?? Mailer.instance();
+        return mailer
             .sendMail(this)
             .then((res: EmailResponse) => {
                 return response.ok(res);
             })
-            .catch((err) => {
-                return response.exception(err);
+            .catch((e) => {
+                Logger.exception(e, this);
+                return response.exception(e);
             });
-    }
-
-    public sendAws(): Promise<JsonResponse> {
-        return this.send(true);
     }
 }

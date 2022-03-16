@@ -1,5 +1,5 @@
-import IUser from "../models/User";
-import INotification from "./Notification";
+import { IUser } from "../models/User";
+import { INotification } from "./Notification";
 
 export interface IJobData {
     title?: string;
@@ -22,7 +22,7 @@ export interface IQueuedJob extends IJobData {
     method: string;
     inputs: any[];
     tube: string;
-    api: string;
+    apiName: string;
     // optional
     instance?: boolean;
     title?: string;

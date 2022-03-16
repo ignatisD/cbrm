@@ -1,4 +1,4 @@
-import IError from "./Error";
+import { IError } from "./Error";
 
 export interface IPayload {
     sessionId: string;

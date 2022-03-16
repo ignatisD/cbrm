@@ -1,7 +1,7 @@
-import INotification from "../interfaces/helpers/Notification";
-import Logger from "./Logger";
+import { INotification } from "../interfaces/helpers/Notification";
+import { Logger } from "./Logger";
 
-export default class Sockets {
+export class Sockets {
 
     public static init() {
         // ...sockets implementation

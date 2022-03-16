@@ -1,12 +1,12 @@
 import { Request } from "express";
 import { pick } from "lodash";
-import IBusinessLike, { IBusinessRegistry } from "../interfaces/business/BusinessLike";
-import IController from "../interfaces/controllers/Controller";
-import IUser from "../interfaces/models/User";
-import IError from "../interfaces/helpers/Error";
-import Logger from "../helpers/Logger";
+import { IBusinessLike, IBusinessRegistry } from "../interfaces/business/BusinessLike";
+import { IController } from "../interfaces/controllers/Controller";
+import { IUser } from "../interfaces/models/User";
+import { IError } from "../interfaces/helpers/Error";
+import { Logger } from "../helpers/Logger";
 
-export default abstract class Controller<T extends IBusinessLike> implements IController<T> {
+export abstract class Controller<T extends IBusinessLike> implements IController<T> {
     protected _business: new() => T;
     protected readonly _name: string;
     protected readonly _namePlural: string;
