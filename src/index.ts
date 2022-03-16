@@ -1,4 +1,6 @@
 // Interfaces
+import "./interfaces/types/apm";
+import "./interfaces/types/express";
 export * from "./interfaces/business/BusinessLike";
 export * from "./interfaces/business/BusinessBase";
 
