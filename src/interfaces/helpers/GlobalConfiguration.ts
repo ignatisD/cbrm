@@ -1,3 +1,4 @@
+import { ConfigurationOptions } from "i18n";
 import { IRedisOptions } from "./Redis";
 import { IExtraLanguageOptions } from "./Multilingual";
 
@@ -20,7 +21,7 @@ export interface GlobalConfiguration {
 
     // i18n options
     useDefaultLanguageOptions?: boolean;
-    languageOptions?: i18n.ConfigurationOptions & IExtraLanguageOptions;
+    languageOptions?: ConfigurationOptions & IExtraLanguageOptions;
     languages?: string[];
     requiredLanguages?: string[];
     defaultLanguage?: string;
