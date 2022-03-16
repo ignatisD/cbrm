@@ -33,6 +33,7 @@ import { Queue } from "./helpers/Queue";
 import { StateManager } from "./helpers/StateManager";
 import { Route } from "./helpers/Route";
 import { JsonResponse } from "./helpers/JsonResponse";
+import { Redis } from "./helpers/Redis";
 
 /**
  * Server class
@@ -94,11 +95,12 @@ export class Server<T extends GlobalState = GlobalState> {
             return;
         }
         if (this.config.languageOptions === true) {
-            this.config.languageOptions = require("./config/languageOptions");
+            const { languageOptions } = require("./config/languageOptions");
+            this.config.languageOptions = languageOptions;
         }
         this._global.set("languages", this.config.languageOptions.locales);
         this._global.set("requiredLanguages", this.config.languageOptions.requiredLanguages);
-        this._global.set("defaultLanguage", this.config.languageOptions.defaultLanguage);
+        this._global.set("defaultLanguage", this.config.languageOptions.defaultLocale || "en");
         this._global.set("fallbackLanguage", this.config.languageOptions.fallbackLocale);
         i18n.configure(this.config.languageOptions);
         this.app.use(i18n.init);
@@ -135,14 +137,14 @@ export class Server<T extends GlobalState = GlobalState> {
     }
 
     public bootstrapWorkers() {
-        if (this.config.queues) {
+        if (this.config.queues && this._global.has("Redis")) {
             Logger.debug("Starting queues");
-            Queue.bootstrap({}, this._global.get("isMainWorker", false) ? this.app : null);
+            Queue.bootstrap(this._global.get("Redis", {}), this._global.get("isMainWorker", false) ? this.app : null);
         }
     }
 
     public async workersListen() {
-        if (this.config.queues && this._global.get("isWorker", false)) {
+        if (this.config.queues && this._global.has("Redis") && this._global.get("isWorker", false)) {
             await this._dbPromise;
             Queue.workersListen(this._global.get("isMainWorker", false));
             Logger.success("Workers are listening");
@@ -222,6 +224,9 @@ export class Server<T extends GlobalState = GlobalState> {
         this._global.set("ServerRoot", path.resolve(__dirname));
         this._global.set("ViewsRoot", path.join(__dirname, "../views"));
         this._global.set("pagingLimit", 100);
+        const redisOptions = Redis.config(process.env.REDIS_HOST || "redis", process.env.REDIS_PORT, process.env.REDIS_MONITOR, process.env.REDIS_HOSTS);
+        redisOptions.API = this._global.get("API");
+        this._global.set("Redis", redisOptions);
     }
 
     public async express() {
@@ -289,7 +294,7 @@ export class Server<T extends GlobalState = GlobalState> {
             } else if (req.headers["x-lang"] && languages.indexOf(req.headers["x-lang"].toString()) !== -1) {
                 locale = req.headers["x-lang"].toString();
             } else {
-                locale = Helpers.getLangByReferer(req.headers.referer) || this._global.get("defaultLanguage");
+                locale = Helpers.getLangByReferer(req.headers.referer) || this._global.get("defaultLanguage", "en");
             }
             req.setLocale(locale);
 

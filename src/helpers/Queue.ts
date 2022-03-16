@@ -15,10 +15,10 @@ import { Logger } from "./Logger";
 import { Registry } from "./Registry";
 import { cloneDeep } from "lodash";
 import { IRedisOptions } from "../interfaces/helpers/Redis";
+import { StateManager } from "./StateManager";
 
 export class Queue {
 
-    public static singleton: Queue;
     public static ready: boolean = false;
 
     public static queues: Record<string, Bull.Queue> = {};
@@ -52,9 +52,9 @@ export class Queue {
 
     public static bootstrap(options: IRedisOptions & IORedis.RedisOptions = {}, app?: Application, jobApiPath: string = "/job-api/") {
         if (Queue.ready) {
-            return;
+            return Queue;
         }
-        this.API = (options?.API || "cbrm").toString();
+        this.API = (options?.API || StateManager.get("API", "cbrm")).toString();
         const prefix = (options?.prefix || "global").toString().toLowerCase();
         const redisOptions: IRedisOptions & IORedis.RedisOptions = cloneDeep(options || {});
         delete redisOptions.prefix;
@@ -78,7 +78,6 @@ export class Queue {
                     case "subscriber":
                     case "bclient":
                     default:
-                        Logger.pretty(redisOpts, redisOptions);
                         return new IORedis(redisOpts);
                 }
             }
@@ -102,7 +101,7 @@ export class Queue {
             Logger.info("Bull board up and running...");
         }
         Queue.ready = true;
-        return Queue.singleton;
+        return this;
     }
 
     public static workersListen(isMainWorker: boolean = false) {

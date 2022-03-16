@@ -5,6 +5,7 @@ import { Application } from "express";
 import { IRedisOptions } from "../interfaces/helpers/Redis";
 import { IConnector } from "../interfaces/helpers/Connector";
 import { Logger } from "./Logger";
+import { StateManager } from "./StateManager";
 
 /**
  * A helper class proxying a subset of the available commands of the Redis database
@@ -64,11 +65,38 @@ export class Redis implements IConnector {
     }
 
     /**
+     * Configuration parser
+     * @param host
+     * @param port
+     * @param monitor
+     * @param sentinelsUri
+     */
+    public static config(host: string, port: string, monitor: string, sentinelsUri: string = ""): IRedisOptions {
+        const config: IRedisOptions = {};
+        const sentinels = (sentinelsUri || "").split(",");
+        if (!monitor || !sentinels.length) {
+            config.host = host || "redis";
+            config.port = parseInt(port || "6379") ;
+            return config;
+        }
+        config.name = monitor;
+        config.sentinels = [];
+        for (const sent of sentinels) {
+            const parts = sent.split(":");
+            config.sentinels.push({
+                host: parts[0] || "redis",
+                port: parseInt(parts[1] || "26379")
+            });
+        }
+        return config;
+    }
+
+    /**
      * Public method for retrieving the current active instance of the Redis class
      */
-    public static instance(options?: IRedisOptions): Redis {
+    public static instance(): Redis {
         if (!Redis._instance) {
-            Redis._instance = new Redis({...(options || {}), prefix: "global"});
+            Redis._instance = new Redis({...StateManager.get("Redis", {}), prefix: "global"});
         }
         return Redis._instance;
     }

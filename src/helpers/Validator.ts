@@ -7,11 +7,11 @@ import {
     validationResult,
     param,
     query,
-    ValidationError
-} from "express-validator/check";
+    ValidationError,
+    sanitize, sanitizeBody, sanitizeParam, sanitizeQuery, SanitizationChain
+} from "express-validator";
 import { ResponseError } from "./ResponseError";
 import { NextFunction, Request, RequestHandler, Response } from "express";
-import { sanitize, sanitizeBody, sanitizeParam, sanitizeQuery, SanitizationChain } from "express-validator/filter";
 import { JsonResponse } from "./JsonResponse";
 
 /**

@@ -1,12 +1,12 @@
-import { Request, Response } from "express";
 import * as path from "path";
-import Controller from "../../src/controllers/Controller";
-import IAppRoutes, { ISimpleRoute } from "../../src/interfaces/routes/AppRoutes";
-import IRoute from "../../src/interfaces/helpers/Route";
-import { PermissionLevel } from "../../src/interfaces/models/Permission";
-import JsonResponse from "../../src/helpers/JsonResponse";
+import { Request, Response } from "express";
 import { Options } from "nodemailer/lib/mailer";
-import ApplicationBusiness from "../business/ApplicationBusiness";
+import { Controller } from "../../src";
+import { IAppRoutes, ISimpleRoute } from "../../src";
+import { IRoute } from "../../src";
+import { PermissionLevel } from "../../src";
+import { JsonResponse } from "../../src";
+import { ApplicationBusiness } from "../business/ApplicationBusiness";
 
 export class ApplicationController extends Controller<ApplicationBusiness> implements IAppRoutes {
 

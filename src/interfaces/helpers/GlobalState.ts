@@ -1,5 +1,6 @@
 import { NewAble } from "./NewAble";
 import { IBusinessLike } from "../business/BusinessLike";
+import { IRedisOptions } from "./Redis";
 
 export interface GlobalState {
     ServerRoot: string;
@@ -17,7 +18,7 @@ export interface GlobalState {
     disableTransactions: boolean;
     pagingLimit: number;
     API: string;
-    Redis: any;
+    Redis: IRedisOptions;
     renderHTML: (view: string, params?: any) => string;
     businessRegistry: { [key: string]: NewAble<IBusinessLike> };
     buildNumber: string;

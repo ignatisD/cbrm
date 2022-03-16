@@ -1,28 +1,32 @@
-import { Server } from "../src";
-import { GlobalState } from "../src";
-import { IServerConfiguration } from "../src";
-import { StateManager } from "../src";
-import { IRoute } from "../src";
+import * as cbrm from "../src";
 
-export interface MyGlobalState extends GlobalState {
+export interface MyGlobalState extends cbrm.GlobalState {
     myGlobalVar: any;
     applicationEmail: string;
 }
 
-export class TestServer extends Server<MyGlobalState> {
+export class TestServer extends cbrm.Server<MyGlobalState> {
 
-    constructor(configuration: IServerConfiguration) {
+    constructor(configuration: cbrm.IServerConfiguration) {
         super(configuration);
     }
 
     public databaseConnection(): Promise<unknown> {
-        this._connector = new StateManager();
+        this._connector = new cbrm.StateManager();
         return this._connector.init();
     }
 
-    public getApplicationRoutes(): IRoute[] {
-        const ApplicationController = require("./controllers/ApplicationController").default;
+    // public bootstrapWorkers() {
+    //     const redisOptions: cbrm.IRedisOptions = {
+    //         host: process.env.REDIS_HOST,
+    //         port: parseInt(process.env.REDIS_PORT || "6379"),
+    //         prefix: "test"
+    //     }
+    //     cbrm.Queue.bootstrap(redisOptions, this._global.get("isMainWorker", false) ? this.app : null);
+    // }
+
+    public getApplicationRoutes(): cbrm.IRoute[] {
+        const { ApplicationController } = require("./controllers/ApplicationController");
         return new ApplicationController().routes();
     }
-
 }

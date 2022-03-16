@@ -11,6 +11,7 @@ services:
     user: "1000:1000"
     volumes:
       - ".:/var/www"
+    working_dir: "/var/www"
     ports:
       - "8000:3000"
     command: [ "npm", "run", "start-test" ]
