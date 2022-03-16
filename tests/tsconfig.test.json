@@ -9,16 +9,13 @@
         "outDir": "./lib",
         "allowSyntheticDefaultImports": true,
         "typeRoots": [
-            "./node_modules/@types",
-            "./interfaces/types"
+            "../node_modules/@types"
         ]
     },
     "include": [
-        "./src/index.ts"
+        "./**/*"
     ],
     "exclude": [
-        "./node_modules",
-        "./lib",
-        "./tests/**/*",
+        "../node_modules"
     ]
 }

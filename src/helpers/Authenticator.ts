@@ -7,14 +7,14 @@ import * as PassportGoogle from "passport-google-token";
 import * as jwt from "jsonwebtoken";
 import * as uuid from "uuid";
 // Interfaces
-import IBusinessBase from "../interfaces/business/BusinessBase";
-import IUser, { RedisUser } from "../interfaces/models/User";
+import { IBusinessBase } from "../interfaces/business/BusinessBase";
+import { IUser, RedisUser } from "../interfaces/models/User";
 import { IPayload, ITokenDurations, ITokenResponse } from "../interfaces/helpers/Payload";
 // Helpers
-import Redis from "./Redis";
-import ResponseError from "./ResponseError";
-import JsonResponse from "./JsonResponse";
-import Logger from "./Logger";
+import { Redis } from "./Redis";
+import { ResponseError } from "./ResponseError";
+import { JsonResponse } from "./JsonResponse";
+import { Logger } from "./Logger";
 
 export enum AuthError {
     TokenError = "TokenError",
@@ -27,7 +27,7 @@ export enum AuthError {
     UserInvalid = "UserInvalid",
 }
 
-export default class Authenticator {
+export class Authenticator {
 
     protected readonly secret: string;
     public static UserBusiness: IBusinessBase<IUser>;

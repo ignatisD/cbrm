@@ -1,13 +1,13 @@
 import { Request } from "express";
 import axios, { AxiosResponse, AxiosInstance, AxiosRequestConfig, AxiosError } from "axios";
-import Business from "./Business";
-import JsonResponse from "../helpers/JsonResponse";
+import { Business } from "./Business";
+import { JsonResponse } from "../helpers/JsonResponse";
 import { IRequestTerms, IQuery } from "../interfaces/helpers/Query";
-import Query from "../helpers/Query";
-import Helpers from "../helpers/Helpers";
-import IResponse from "../interfaces/helpers/Response";
+import { Query } from "../helpers/Query";
+import { Helpers } from "../helpers/Helpers";
+import { IResponse } from "../interfaces/helpers/Response";
 
-export default class ApiBusiness<T = any> extends Business<T> {
+export class ApiBusiness<T = any> extends Business<T> {
 
     protected _request: AxiosInstance;
     protected _requestOptions: AxiosRequestConfig = {

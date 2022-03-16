@@ -1,6 +1,6 @@
 import { IRole } from "./Role";
 
-export default interface IUser {
+export interface IUser {
     _id: string;
     sessionId?: string;
 

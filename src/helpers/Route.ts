@@ -2,13 +2,14 @@ import * as express from "express";
 import * as path from "path";
 import * as proxy from "express-http-proxy";
 import { ProxyOptions } from "express-http-proxy";
-import IRoute from "../interfaces/helpers/Route";
-import IController from "../interfaces/controllers/Controller";
+import { IRoute } from "../interfaces/helpers/Route";
+import { IController } from "../interfaces/controllers/Controller";
 import { IPermissionsConfig, PermissionLevel } from "../interfaces/models/Permission";
-import Authenticator from "./Authenticator";
-import Logger from "./Logger";
+import { Authenticator } from "./Authenticator";
+import { Logger } from "./Logger";
+import { Registry } from "./Registry";
 
-export default class Route implements IRoute {
+export class Route implements IRoute {
 
     name?: string;
     path: string;
@@ -51,8 +52,8 @@ export default class Route implements IRoute {
             if (this.ctrl && this.method) {
                 if ("registry" in this.ctrl) {
                     const registry = this.ctrl.registry();
-                    if (registry?.name && !global.businessRegistry.hasOwnProperty(registry.name)) {
-                        global.businessRegistry[registry.name] = registry.business;
+                    if (registry?.name && !Registry.has(registry.name)) {
+                        Registry.set(registry.name, registry.business);
                     }
                 }
                 if (this.authenticator) {

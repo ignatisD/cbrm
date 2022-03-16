@@ -1,5 +1,5 @@
-import IUser from "../models/User";
-import INotification from "./Notification";
+import { IUser } from "../models/User";
+import { INotification } from "./Notification";
 
 export interface IJobData {
     title?: string;

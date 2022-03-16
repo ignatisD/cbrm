@@ -8,11 +8,12 @@ import {
     IQueryOptions,
     ISearchTermsSortOptions
 } from "../interfaces/helpers/Query";
-import Helpers from "./Helpers";
+import { Helpers } from "./Helpers";
 import { ReadPreference } from "../interfaces/helpers/ReadPreference";
-import Logger from "./Logger";
+import { Logger } from "./Logger";
+import { StateManager } from "./StateManager";
 
-export default class Query implements IQuery {
+export class Query implements IQuery {
 
     public id: string;
     public user: string;
@@ -25,7 +26,7 @@ export default class Query implements IQuery {
     public scroll: number;
     public scrollId: string;
     public debug: boolean;
-    public locale: string = global.defaultLanguage;
+    public locale: string = "en";
     /**
      * Query Filters to be used by MongoDB or Elastic
      */
@@ -39,7 +40,7 @@ export default class Query implements IQuery {
      */
     public options: IQueryOptions = {
         page: 1,
-        limit: global.pagingLimit,
+        limit: undefined,
         autopopulate: false,
         populate: [],
         customLabels: {
@@ -55,6 +56,8 @@ export default class Query implements IQuery {
     };
 
     constructor(limit?: number, st?: IQuery) {
+        this.locale = StateManager.get("defaultLanguage", "en");
+        this.options.limit = StateManager.get("pagingLimit");
         if (limit) {
             this.options.limit = limit < 0 ? undefined : limit;
         }
@@ -290,8 +293,8 @@ export default class Query implements IQuery {
     }
 
     public fromInputs(data) {
-        let limit = data.limit === "0" || data.limit === 0 ? -1 : parseInt((data.limit || data._limit || global.pagingLimit).toString());
-        limit = limit < -1 ? global.pagingLimit : limit;
+        let limit = data.limit === "0" || data.limit === 0 ? -1 : parseInt((data.limit || data._limit || StateManager.get("pagingLimit")).toString());
+        limit = limit < -1 ? StateManager.get("pagingLimit") : limit;
         this.setPaging(parseInt((data.page || data._page || 1).toString()), limit);
         if (data.lean && data.lean !== "0" && data.lean !== "false") {
             this.setLean(true);
@@ -952,7 +955,7 @@ export default class Query implements IQuery {
     }
 
     public setLocale(locale?: string, collation: boolean = false) {
-        this.locale = locale || global.defaultLanguage;
+        this.locale = locale || StateManager.get("defaultLanguage", "en");
         this.options.language = this.locale;
         if (collation) {
             this.options.collation = {locale: this.locale};
@@ -979,7 +982,7 @@ export default class Query implements IQuery {
 
     public setPaging(page: number, limit?: number) {
         this.options.page = page || 1;
-        this.options.limit = limit || global.pagingLimit;
+        this.options.limit = limit || StateManager.get("pagingLimit");
         if (this.options.limit === -1) {
             delete this.options.limit;
         }
@@ -1047,7 +1050,7 @@ export default class Query implements IQuery {
                 } // either exact match or start of multilang
                 if (field.length !== key.length) { // multiLang match
                     const value = Query.escapeRegex(this.filters[key]);
-                    this.filters["$or"] = global.languages.map((lang) => {
+                    this.filters["$or"] = StateManager.get("languages", []).map((lang) => {
                         return {
                             [`${key}.${lang}`]: {
                                 $regex: `.*${value}.*`,
@@ -1058,7 +1061,7 @@ export default class Query implements IQuery {
                     this.removeFilter(key);
                     this.opFilters.push({
                         key: "or",
-                        value: global.languages.map((lang) => {
+                        value: StateManager.get("languages", []).map((lang) => {
                             return new Query().setFilter(`${key}.${lang}`, new RegExp(`.*${value}.*`, "i"), "$regex");
                         }),
                         op: "$bool"

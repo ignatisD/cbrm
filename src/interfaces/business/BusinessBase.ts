@@ -1,9 +1,9 @@
 import { IQuery } from "../helpers/Query";
 import { IMappingResponse } from "../helpers/Mapping";
-import IBusinessLike from "../business/BusinessLike";
-import IPaginatedResults from "../helpers/PaginatedResults";
+import { IBusinessLike } from "./BusinessLike";
+import { IPaginatedResults } from "../helpers/PaginatedResults";
 
-export default interface IBusinessBase<T = any> extends IBusinessLike {
+export interface IBusinessBase<T = any> extends IBusinessLike {
     create: (item: Partial<T>|any, refresh?: any) => Promise<any>;
     createMany: (items: Partial<T>[], refresh?: any) => Promise<any>;
 

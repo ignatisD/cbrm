@@ -2,9 +2,9 @@ version: "3.7"
 
 services:
 
-  cbrm:
-    hostname: "cbrm"
-    image: node:14.17.3
+  cbrm-test:
+    hostname: "cbrm-test"
+    image: node:16.14.0
     environment:
       - NODE_TYPE=main-worker
     tty: true
@@ -12,20 +12,15 @@ services:
     volumes:
       - ".:/var/www"
     ports:
-      - mode: host
-        protocol: tcp
-        published: 3000
-        target: 3000
-    command: [ "npm", "start" ]
+      - "8000:3000"
+    command: [ "npm", "run", "start-test" ]
 
-  redis:
+  redis-test:
     image: redis:6
-    ports:
-      - mode: host
-        protocol: tcp
-        published: 6379
-        target: 6379
 
-  mailhog:
+  mailhog-test:
     image: mailhog/mailhog
+    ports:
+      - "1025:1025"
+      - "8025:8025"
 

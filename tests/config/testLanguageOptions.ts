@@ -1,5 +1,5 @@
 import * as i18n from "i18n";
-export interface ExtraLanguageOptions {
+interface ExtraLanguageOptions {
     fallbackLocale: string;
     requiredLanguages: string[];
 }

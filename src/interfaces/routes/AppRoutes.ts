@@ -1,6 +1,6 @@
-import IRoute from "../helpers/Route";
+import { IRoute } from "../helpers/Route";
 
-export default interface IAppRoutes {
+export interface IAppRoutes {
     routes(): IRoute[];
 }
 

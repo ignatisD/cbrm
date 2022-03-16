@@ -1,14 +1,14 @@
 import { Request, Response } from "express";
-import IControllerBase, { ControllerMethodsPopulates } from "../interfaces/controllers/ControllerBase";
-import IBusinessBase from "../interfaces/business/BusinessBase";
+import { IControllerBase, ControllerMethodsPopulates } from "../interfaces/controllers/ControllerBase";
+import { IBusinessBase } from "../interfaces/business/BusinessBase";
 import { MappingMode } from "../interfaces/helpers/Mapping";
-import { IPopulate, IQuery } from "../interfaces/helpers/Query";
-import JsonResponse from "../helpers/JsonResponse";
-import Query from "../helpers/Query";
-import Controller from "../controllers/Controller";
-import Logger from "../helpers/Logger";
+import { IPopulate } from "../interfaces/helpers/Query";
+import { JsonResponse } from "../helpers/JsonResponse";
+import { Query } from "../helpers/Query";
+import { Controller } from "./Controller";
+import { Logger } from "../helpers/Logger";
 
-export default abstract class ControllerBase<C extends IBusinessBase> extends Controller<C> implements IControllerBase {
+export abstract class ControllerBase<C extends IBusinessBase> extends Controller<C> implements IControllerBase {
 
     protected _methodPopulates: Partial<ControllerMethodsPopulates>;
 

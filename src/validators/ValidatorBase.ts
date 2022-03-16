@@ -1,8 +1,8 @@
-import Validator from "../helpers/Validator";
-import IValidatorBase, { IValidationChain } from "../interfaces/validators/ValidatorBase";
+import { Validator } from "../helpers/Validator";
+import { IValidatorBase, IValidationChain } from "../interfaces/validators/ValidatorBase";
 import { RequestHandler } from "express";
 
-export default class ValidatorBase implements IValidatorBase {
+export class ValidatorBase implements IValidatorBase {
 
     protected _requiredFields: string[] = [];
     protected _validations: IValidationChain = [];

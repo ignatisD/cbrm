@@ -1,13 +1,13 @@
 import { AxiosRequestConfig } from "axios";
-import ApiBusiness from "./ApiBusiness";
-import IBusinessBase from "../interfaces/business/BusinessBase";
+import { ApiBusiness } from "./ApiBusiness";
+import { IBusinessBase } from "../interfaces/business/BusinessBase";
 import { IQuery } from "../interfaces/helpers/Query";
-import JsonResponse from "../helpers/JsonResponse";
+import { JsonResponse } from "../helpers/JsonResponse";
 import { IMappingResponse, MappingMode } from "../interfaces/helpers/Mapping";
-import IPaginatedResults from "../interfaces/helpers/PaginatedResults";
-import Pagination from "../helpers/Pagination";
+import { IPaginatedResults } from "../interfaces/helpers/PaginatedResults";
+import { Pagination } from "../helpers/Pagination";
 
-export default class ApiBusinessBase<T = any> extends ApiBusiness implements IBusinessBase<T> {
+export class ApiBusinessBase<T = any> extends ApiBusiness implements IBusinessBase<T> {
     constructor() {
         super();
     }

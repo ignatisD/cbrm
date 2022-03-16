@@ -1,9 +1,9 @@
 import { IQuery } from "../helpers/Query";
-import IRead from "../helpers/Read";
-import IWrite from "../helpers/Write";
-import IRepository from "../repository/Repository";
+import { IRead } from "../helpers/Read";
+import { IWrite } from "../helpers/Write";
+import { IRepository } from "../repository/Repository";
 
-export default interface IRepositoryBase<T = any> extends IRead<T>, IWrite<T>, IRepository {
+export interface IRepositoryBase<T = any> extends IRead<T>, IWrite<T>, IRepository {
     ensureMapping: () => Promise<any>;
     search: (params: IQuery) => Promise<any>;
     find: (params: IQuery) => Promise<any>;

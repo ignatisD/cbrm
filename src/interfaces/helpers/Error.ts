@@ -5,7 +5,7 @@
  * @property message string
  * @type Error
  */
-export default interface IError extends Error {
+export interface IError extends Error {
     name: string;
     message: string;
     getMessage?(): string;

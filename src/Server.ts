@@ -18,58 +18,62 @@ import * as v8 from "v8";
 // Interfaces
 import { IConnector } from "./interfaces/helpers/Connector";
 import { IServerConfiguration } from "./interfaces/helpers/ServerConfiguration";
-import IRoute from "./interfaces/helpers/Route";
+import { IRoute } from "./interfaces/helpers/Route";
+import { GlobalState } from "./interfaces/helpers/GlobalState";
 
 // Set Logger
-import Logger from "./helpers/Logger";
+import { Logger } from "./helpers/Logger";
 
 
 // Modules | Keep Sorted By Variable Name
-import Authenticator from "./helpers/Authenticator";
-import Helpers from "./helpers/Helpers";
+import { Authenticator } from "./helpers/Authenticator";
+import { Helpers } from "./helpers/Helpers";
 import { IMailerOptions, Mailer } from "./helpers/Mailer";
-import Queue from "./helpers/Queue";
-import Route from "./helpers/Route";
-import JsonResponse from "./helpers/JsonResponse";
+import { Queue } from "./helpers/Queue";
+import { StateManager } from "./helpers/StateManager";
+import { Route } from "./helpers/Route";
+import { JsonResponse } from "./helpers/JsonResponse";
 
 /**
  * Server class
  * @param envFile Is the path of the environmental variables file
  */
-export default class Server {
+export class Server<T extends GlobalState = GlobalState> {
 
     protected static authenticator: typeof Authenticator = null;
     static up: boolean = false;
     // Keep Sorted By Variable Name
     public app: express.Application;
-    public cors: any;
-    public port: number;
-    public serverName: any;
-    public useSSL: boolean;
-    public sslDir: string;
+    public cors: string[] = ["*"];
+    public port: number = 3000;
+    public serverName: string = "localhost";
+    public useSSL: boolean = false;
+    public sslDir: string = "/etc/ssl";
     public serverTimeout: number = 300000; // 5 minutes
 
     protected _secret: string = "01A10A01A10A01A10A01A10A";
-    protected _logFormat: string = "";
+    protected _logFormat: string = ":real_ip - :remote-user [:date[clf]] \":method :url HTTP/:http-version\" :status :res[content-length] \":referrer\" \":user-agent\"";
     protected _server: http.Server|https.Server = null;
     protected _dbPromise: Promise<any> = new Promise(() => void 0);
     protected _connector: IConnector = null;
     protected readonly _configuration: IServerConfiguration;
+    protected readonly _global: StateManager<T>;
 
     constructor(configuration: IServerConfiguration) {
         this._configuration = configuration;
+        this._global = StateManager.instance<T>();
     }
 
     public static setAuthenticator(authenticator: typeof Authenticator = null) {
         this.authenticator = authenticator;
     }
 
-    public static bootstrap(configuration: IServerConfiguration): Promise<Server> {
-        return new this(configuration).init();
+    public static bootstrap<G extends GlobalState>(configuration: IServerConfiguration): Promise<Server<G>> {
+        return new this<G>(configuration).init();
     }
 
-    public static test(configuration: IServerConfiguration): Server {
-        const server = new this(configuration);
+    public static test<G extends GlobalState>(configuration: IServerConfiguration): Server<G> {
+        const server = new this<G>(configuration);
         server.env();
         server.configure();
         return server;
@@ -92,10 +96,10 @@ export default class Server {
         if (this.config.languageOptions === true) {
             this.config.languageOptions = require("./config/languageOptions");
         }
-        global.languages = this.config.languageOptions.locales;
-        global.requiredLanguages = this.config.languageOptions.requiredLanguages;
-        global.defaultLanguage = this.config.languageOptions.defaultLocale;
-        global.fallbackLanguage = this.config.languageOptions.fallbackLocale;
+        this._global.set("languages", this.config.languageOptions.locales);
+        this._global.set("requiredLanguages", this.config.languageOptions.requiredLanguages);
+        this._global.set("defaultLanguage", this.config.languageOptions.defaultLanguage);
+        this._global.set("fallbackLanguage", this.config.languageOptions.fallbackLocale);
         i18n.configure(this.config.languageOptions);
         this.app.use(i18n.init);
     }
@@ -131,14 +135,16 @@ export default class Server {
     }
 
     public bootstrapWorkers() {
-        Logger.debug("Starting queues");
-        Queue.bootstrap(global.isMainWorker ? this.app : null);
+        if (this.config.queues) {
+            Logger.debug("Starting queues");
+            Queue.bootstrap({}, this._global.get("isMainWorker", false) ? this.app : null);
+        }
     }
 
     public async workersListen() {
-        if (global.isWorker) {
+        if (this.config.queues && this._global.get("isWorker", false)) {
             await this._dbPromise;
-            Queue.workersListen();
+            Queue.workersListen(this._global.get("isMainWorker", false));
             Logger.success("Workers are listening");
         }
     }
@@ -179,27 +185,26 @@ export default class Server {
     public env() {
         // Load environment variables from .env file, where API keys and passwords are configured.
         dotenv.config({path: this.config.envFile});
-        global.envFile = this.config.envFile;
-        global.prefix = process.env.PREFIX || "dev";
-        global.buildNumber = process.env.BUILD || "build-dev";
-
-        this.port = parseInt(process.env.NODE_PORT || "3000");
-        this.serverName = process.env.SERVER_NAME || "localhost";
-        this.serverTimeout = parseInt(process.env.SERVER_TIMEOUT || "300000");
-        this.cors = (process.env.CORS_URLS || "*").split(",");
-        this.useSSL = Helpers.isTrue(process.env.USE_SSL);
-        this.sslDir = process.env.SSL_DIR || "/etc/ssl";
-        this._secret = process.env.SECRET_OR_KEY || "01A10A01A10A01A10A01A10A";
-        this._logFormat = process.env.LOG_FORMAT || ":real_ip - :remote-user [:date[clf]] \":method :url HTTP/:http-version\" :status :res[content-length] \":referrer\" \":user-agent\"";
-
-        global.isDevMode = process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test";
-        global.isWorker = global.isDevMode || process.env.NODE_ENV === "worker";
-        global.isMainWorker = global.isDevMode || process.env.NODE_TYPE === "main-worker";
-        global.API = this.config.apiName || "cbrm";
+        this._global.set("envFile", this.config.envFile);
+        this._global.set("prefix", process.env.PREFIX || "dev");
+        this._global.set("buildNumber", process.env.BUILD || "build-dev");
+        this._global.set("isDevMode", process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test");
+        this._global.set("isWorker", this._global.get("isDevMode", false) || process.env.NODE_ENV === "worker");
+        this._global.set("isMainWorker", this._global.get("isDevMode", false) || process.env.NODE_TYPE === "main-worker");
     }
 
     public configure() {
         require("events").EventEmitter.defaultMaxListeners = 100;
+
+        this.port = parseInt(process.env.NODE_PORT || "3000");
+        this.serverName = process.env.SERVER_NAME || this.serverName;
+        this.serverTimeout = parseInt(process.env.SERVER_TIMEOUT || "300000");
+        this.cors = (process.env.CORS_URLS || "*").split(",");
+        this.useSSL = Helpers.isTrue(process.env.USE_SSL);
+        this.sslDir = process.env.SSL_DIR || this.sslDir;
+        this._secret = process.env.SECRET_OR_KEY || this._secret;
+        this._logFormat = process.env.LOG_FORMAT || this._logFormat;
+
         const mailOptions: IMailerOptions = {
             host: process.env.SMTP_HOST,
             port: process.env.SMTP_PORT ? parseInt(process.env.SMTP_PORT) : 465
@@ -211,15 +216,12 @@ export default class Server {
             mailOptions.user = process.env.SMTP_AUTH_USER;
             mailOptions.pass = process.env.SMTP_AUTH_PASS;
         }
-        global.Mailer = Mailer.setup(mailOptions);
-        global.ServerRoot = path.resolve(__dirname);
-        global.ViewsRoot = path.join(__dirname, "../views");
-        global.pagingLimit = 100;
+        Mailer.setup(mailOptions);
         Logger.setStatics(process.env.DEBUG !== "false", `${process.env.NODE_ENV}@${process.env.HOSTNAME}`);
-
-        // Initialize Languages
-
-        global.businessRegistry = {};
+        this._global.set("API", this.config.apiName || "cbrm");
+        this._global.set("ServerRoot", path.resolve(__dirname));
+        this._global.set("ViewsRoot", path.join(__dirname, "../views"));
+        this._global.set("pagingLimit", 100);
     }
 
     public async express() {
@@ -228,10 +230,12 @@ export default class Server {
             this.app.use(new Server.authenticator(this._secret).initialize());
         }
 
-        this.app.set("views", path.join(__dirname, "../views"));
-        this.app.set("view engine", "pug");
+        if (this._global.has("ViewsRoot")) {
+            this.app.set("views", this._global.get("ViewsRoot"));
+            this.app.set("view engine", "pug");
+        }
         // Global RenderHTML fro pug templates
-        global.renderHTML = Helpers.renderHTML(this.app);
+        this._global.set("renderHTML", Helpers.renderHTML(this.app));
 
         // Express configuration.
         this.app.set("port", this.port);
@@ -267,7 +271,7 @@ export default class Server {
             }
         }));
         this.app.use(cookieParser());
-        this.app.use(bodyParser.json({limit: "50mb"}));
+        this.app.use(bodyParser.json({limit: this.config.bodyLimit || "50mb"}));
         this.app.use(bodyParser.urlencoded({extended: true}));
 
 
@@ -275,16 +279,17 @@ export default class Server {
 
         this.app.use((req, res, next) => {
             let locale: string;
-            if (req.query.lang && global.languages.indexOf(req.query.lang.toString()) !== -1) {
+            const languages = this._global.get("languages", []);
+            if (req.query.lang && languages.indexOf(req.query.lang.toString()) !== -1) {
                 locale = req.query.lang.toString();
-            } else if (req.query.l && global.languages.indexOf(req.query.l.toString()) !== -1) {
+            } else if (req.query.l && languages.indexOf(req.query.l.toString()) !== -1) {
                 locale = req.query.l.toString();
-            } else if (req.cookies.lang && global.languages.indexOf(req.cookies.lang.toString()) !== -1) {
+            } else if (req.cookies.lang && languages.indexOf(req.cookies.lang.toString()) !== -1) {
                 locale = req.cookies.lang.toString();
-            } else if (req.headers["x-lang"] && global.languages.indexOf(req.headers["x-lang"].toString()) !== -1) {
+            } else if (req.headers["x-lang"] && languages.indexOf(req.headers["x-lang"].toString()) !== -1) {
                 locale = req.headers["x-lang"].toString();
             } else {
-                locale = Helpers.getLangByReferer(req.headers.referer) || global.defaultLanguage;
+                locale = Helpers.getLangByReferer(req.headers.referer) || this._global.get("defaultLanguage");
             }
             req.setLocale(locale);
 
@@ -338,7 +343,7 @@ export default class Server {
         this._server.timeout = this.serverTimeout;
 
         this._server.on("listening", () => {
-            Logger.success(`  App is running at http://${global.API}:${this.port} in ${process.env.NODE_ENV} mode`);
+            Logger.success(`  App is running at http://${this._global.get("API", "cbrm")}:${this.port} in ${process.env.NODE_ENV} mode`);
             Logger.debug("  Press CTRL+C to stop");
         });
 

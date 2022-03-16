@@ -17,6 +17,7 @@ Thumbs.db
 # Ignore built ts files
 lib/**/*
 release/**/*
+tests/lib/**/*
 
 # Ignore folders
 

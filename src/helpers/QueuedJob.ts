@@ -1,19 +1,21 @@
+import cronstrue from "cronstrue";
+import * as moment from "moment";
 import { Job, JobOptions } from "bull";
 import { CronJob } from "cron";
-import cronstrue from "cronstrue";
 import { pick } from "lodash";
-import * as moment from "moment";
 import { IJobData, IQueuedJob } from "../interfaces/helpers/QueuedJob";
-import IUser from "../interfaces/models/User";
-import INotification from "../interfaces/helpers/Notification";
-import IBusinessLike from "../interfaces/business/BusinessLike";
-import Queue from "./Queue";
+import { IUser } from "../interfaces/models/User";
+import { INotification } from "../interfaces/helpers/Notification";
+import { IBusinessLike } from "../interfaces/business/BusinessLike";
+import { Queue } from "./Queue";
 import { Tubes } from "./Tubes";
-import JsonResponse from "./JsonResponse";
-import Redis from "./Redis";
-import Logger from "./Logger";
+import { JsonResponse } from "./JsonResponse";
+import { Redis } from "./Redis";
+import { Logger } from "./Logger";
+import { StateManager } from "./StateManager";
+import { Registry } from "./Registry";
 
-export default class QueuedJob implements IQueuedJob {
+export class QueuedJob implements IQueuedJob {
     public business: string;
     public method: string;
     public inputs: any[] = [];
@@ -28,7 +30,7 @@ export default class QueuedJob implements IQueuedJob {
     public socket: string;
 
     public uniqueId: string;
-    public api: string = global.API;
+    public api: string;
     public tube: string = Tubes.NORMAL;
     public businessTube: string;
     public notification: INotification;
@@ -43,6 +45,7 @@ export default class QueuedJob implements IQueuedJob {
     protected static ttl: number = 259200; // 3 day
 
     constructor(business: any, method: string = null, inputs: any[] = [], instance = true) {
+        this.setApi();
         const constructor = business.constructor?.name;
         switch (constructor) {
             case "String":
@@ -67,7 +70,7 @@ export default class QueuedJob implements IQueuedJob {
     }
 
     public setApi(api?: string) {
-        this.api = api || global.API;
+        this.api = api || StateManager.get("API", "cbrm");
         return this;
     }
 
@@ -195,8 +198,8 @@ export default class QueuedJob implements IQueuedJob {
         try {
             response.set("details", this.getData(false));
             // Only check local businesses
-            if (this.api === global.API) {
-                const BusinessClass = global.businessRegistry[this.business];
+            if (this.api === StateManager.get("API", "cbrm")) {
+                const BusinessClass = Registry.get(this.business);
                 if (!BusinessClass) {
                     return response.error(`Business not registered: ${this.business}`);
                 }
@@ -428,7 +431,7 @@ export default class QueuedJob implements IQueuedJob {
                 await instance.delete(onCompleteKey);
                 const q = new QueuedJob(job.business)
                     .setup(job.method, job.inputs, job.instance !== false)
-                    .setApi(job.api || global.API);
+                    .setApi(job.api);
                 if (job.delay) {
                     q.later(job.delay);
                 }

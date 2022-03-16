@@ -1,4 +1,4 @@
-export default interface IResponse<T = any> {
+export interface IResponse<T = any> {
     success: boolean;
     errors?: any;
     details?: any;

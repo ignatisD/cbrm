@@ -1,17 +1,20 @@
+import path from "path";
 import * as moment from "moment";
-import Email from "../helpers/Email";
+import { Email } from "../helpers/Email";
 import Mail from "nodemailer/lib/mailer";
-import INotification from "../interfaces/helpers/Notification";
-import JsonResponse from "../helpers/JsonResponse";
+import { INotification } from "../interfaces/helpers/Notification";
+import { JsonResponse } from "../helpers/JsonResponse";
 import { INotifier } from "../interfaces/helpers/Notifier";
 import { EmailResponse } from "../interfaces/helpers/EmailResponse";
-import Helpers from "../helpers/Helpers";
-import Logger from "../helpers/Logger";
+import { Helpers } from "../helpers/Helpers";
+import { Logger } from "../helpers/Logger";
+import { StateManager } from "../helpers/StateManager";
 
-export default class NotificationMailer extends Email implements INotifier {
-    protected _basePath = global.ViewsRoot + "/";
+export class NotificationMailer extends Email implements INotifier {
+    protected _basePath: string;
     constructor(opts?: Mail.Options) {
         super(opts);
+        this._basePath = path.join(StateManager.get("ViewsRoot", __dirname),  "/");
     }
 
     public async notify(notification: INotification) {
@@ -21,7 +24,7 @@ export default class NotificationMailer extends Email implements INotifier {
                 Logger.error("Notification user not found or no email given", {title: notification.title});
                 return response.error("User is required for notification");
             }
-            const emailPath = notification.emailPath || this._basePath + "/notification.pug";
+            const emailPath = notification.emailPath || path.join(this._basePath, "/notification.pug");
             const template = Helpers.renderPugTemplate(emailPath, {
                 ...notification,
                 moment: moment
@@ -39,7 +42,7 @@ export default class NotificationMailer extends Email implements INotifier {
             this.setBody(template, true);
             this.setSubject(notification.title);
 
-            return this.send(false);
+            return this.send();
         } catch (e) {
             Logger.exception(e, {user: notification?.user});
             return response.exception(e);

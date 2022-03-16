@@ -1,4 +1,4 @@
-import IUser from "../models/User";
+import { IUser } from "../models/User";
 import { LogLevel } from "./LogLevel";
 
 export interface INotificationAction {
@@ -26,7 +26,7 @@ export interface IWebNotification {
     vibrate?: number[];
 }
 
-export default interface INotification extends IWebNotification {
+export interface INotification extends IWebNotification {
     type?: LogLevel; // For color
     took?: number;
     email?: boolean;

@@ -12,6 +12,7 @@ export interface IMailerOptions {
 export class Mailer {
 
     protected options: SMTPTransport.Options;
+    protected static _instance: Mail;
 
     constructor(opts: IMailerOptions) {
         this.options = {
@@ -28,8 +29,13 @@ export class Mailer {
         }
     }
 
+    public static instance() {
+        return this._instance;
+    }
+
     public static setup(opts: IMailerOptions): Mail {
         const mailer = new Mailer(opts);
-        return nodemailer.createTransport(mailer.options);
+        this._instance = nodemailer.createTransport(mailer.options);
+        return this._instance;
     }
 }

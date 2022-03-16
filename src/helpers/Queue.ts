@@ -6,15 +6,17 @@ import { BullAdapter } from "@bull-board/api/bullAdapter";
 import { ExpressAdapter } from "@bull-board/express";
 // interfaces
 import { IJobData } from "../interfaces/helpers/QueuedJob";
-import IBusinessLike from "../interfaces/business/BusinessLike";
 // Helpers
-import JsonResponse from "./JsonResponse";
-import QueuedJob from "./QueuedJob";
-import ResponseError from "./ResponseError";
+import { JsonResponse } from "./JsonResponse";
+import { QueuedJob } from "./QueuedJob";
+import { ResponseError } from "./ResponseError";
 import { Tubes } from "./Tubes";
-import Logger from "./Logger";
+import { Logger } from "./Logger";
+import { Registry } from "./Registry";
+import { cloneDeep } from "lodash";
+import { IRedisOptions } from "../interfaces/helpers/Redis";
 
-export default class Queue {
+export class Queue {
 
     public static singleton: Queue;
     public static ready: boolean = false;
@@ -35,29 +37,34 @@ export default class Queue {
 
     protected static readonly _prefix = "queue";
     protected static options: Bull.QueueOptions;
+    protected static API: string = "cbrm";
 
     protected constructor() {
     }
 
-    protected static get prefix() {
-        return `${global.prefix}:${this._prefix}`;
+    protected static get prefix(): string {
+        return this.options?.prefix || "";
     }
 
-    public static getTube(tube: string = Tubes.NORMAL, api: string = global.API) {
+    public static getTube(tube: string = Tubes.NORMAL, api: string = this.API) {
         return `${api}_${tube}`;
     }
 
-    public static bootstrap(app?: Application) {
+    public static bootstrap(options: IRedisOptions & IORedis.RedisOptions = {}, app?: Application, jobApiPath: string = "/job-api/") {
         if (Queue.ready) {
             return;
         }
-        const redisOptions: IORedis.RedisOptions = {
-            ...global.Redis,
-            maxRetriesPerRequest: null,
-            enableReadyCheck: false,
-        };
+        this.API = (options?.API || "cbrm").toString();
+        const prefix = (options?.prefix || "global").toString().toLowerCase();
+        const redisOptions: IRedisOptions & IORedis.RedisOptions = cloneDeep(options || {});
+        delete redisOptions.prefix;
+        delete redisOptions.API;
+        redisOptions.host = options.host || "localhost";
+        redisOptions.port = options.port || 6379;
+        redisOptions.maxRetriesPerRequest = null;
+        redisOptions.enableReadyCheck = false;
         Queue.options = {
-            prefix: this.prefix,
+            prefix: `${prefix}:${this._prefix}`,
             redis: redisOptions,
             settings: {
                 lockDuration: 50000,
@@ -71,7 +78,8 @@ export default class Queue {
                     case "subscriber":
                     case "bclient":
                     default:
-                        return new IORedis(redisOptions);
+                        Logger.pretty(redisOpts, redisOptions);
+                        return new IORedis(redisOpts);
                 }
             }
         };
@@ -83,25 +91,25 @@ export default class Queue {
         }
         if (app) {
             const serverAdapter = new ExpressAdapter();
-            serverAdapter.setBasePath("/job-api/");
+            serverAdapter.setBasePath(jobApiPath);
             createBullBoard({
                 queues: Object.values(Queue.queues).map(q => {
                     return new BullAdapter(q);
                 }),
                 serverAdapter,
             });
-            app.use("/job-api/", serverAdapter.getRouter());
+            app.use(jobApiPath, serverAdapter.getRouter());
             Logger.info("Bull board up and running...");
         }
         Queue.ready = true;
         return Queue.singleton;
     }
 
-    public static workersListen() {
+    public static workersListen(isMainWorker: boolean = false) {
         if (!Queue.ready) {
             return;
         }
-        if (global.isMainWorker) {
+        if (isMainWorker) {
             Queue.SOLO.process(1, Queue.process);
         }
         Queue.LAZY.process(5, Queue.process);
@@ -203,13 +211,13 @@ export default class Queue {
                 done(new ResponseError("MethodAndBusinessRequired", `Business and business method are required for background processes.`), data);
                 return;
             }
-            const BusinessClass = global.businessRegistry[businessName];
+            const BusinessClass = Registry.get(businessName);
             if (!BusinessClass) {
                 Logger.error(`BusinessNotFound: ${businessName}`);
                 done(new ResponseError("BusinessNotFound", `Business '${businessName}' was not found`), data);
                 return;
             }
-            const business: IBusinessLike = instance ? new BusinessClass() : BusinessClass; // static or instance
+            const business: any = instance ? new BusinessClass() : BusinessClass; // static or instance
             if (!business || !(method in business)) {
                 Logger.error(`MethodNotFound: ${method} in business: ${businessName}`);
                 done(new ResponseError("MethodNotFound", `'${method}' was not found in ${businessName}`), data);

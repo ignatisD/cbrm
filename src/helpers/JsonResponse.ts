@@ -1,7 +1,7 @@
-import IResponse from "../interfaces/helpers/Response";
-import IError from "../interfaces/helpers/Error";
-import ResponseError from "./ResponseError";
-import Logger from "./Logger";
+import { IResponse } from "../interfaces/helpers/Response";
+import { IError } from "../interfaces/helpers/Error";
+import { ResponseError } from "./ResponseError";
+import { Logger } from "./Logger";
 
 /**
  * A quick access to a standardized Json Response
@@ -13,7 +13,7 @@ import Logger from "./Logger";
  *
  * Remember you can assign a type (T) to this class to assist in results type completion
  */
-export default class JsonResponse<T = any> implements IResponse {
+export class JsonResponse<T = any> implements IResponse {
 
     /**
      * Property denoting the success of the operation

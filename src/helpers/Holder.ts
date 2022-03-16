@@ -3,7 +3,7 @@
  * has methods to determine when a certain limit of items
  * has been reached.
  */
-export default class Holder<T = any> {
+export class Holder<T = any> {
 
     /**
      * The limit that should not be exceeded

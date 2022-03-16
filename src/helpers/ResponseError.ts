@@ -1,4 +1,4 @@
-import IError from "../interfaces/helpers/Error";
+import { IError } from "../interfaces/helpers/Error";
 
 /**
  * A wrapper class for general API Errors
@@ -7,7 +7,7 @@ import IError from "../interfaces/helpers/Error";
  * @property details any
  * @type IError
  */
-export default class ResponseError implements IError {
+export class ResponseError implements IError {
 
     public readonly name: string;
     public readonly message: string;

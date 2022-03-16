@@ -1,12 +1,13 @@
-import IPaginatedResults from "../interfaces/helpers/PaginatedResults";
-import IError from "../interfaces/helpers/Error";
+import { IPaginatedResults } from "../interfaces/helpers/PaginatedResults";
+import { IError } from "../interfaces/helpers/Error";
 import { IQuery, IQueryOptions } from "../interfaces/helpers/Query";
+import { StateManager } from "./StateManager";
 
-export default class Pagination<T = any> implements IPaginatedResults<T> {
+export class Pagination<T = any> implements IPaginatedResults<T> {
 
     public docs: T[] = [];
     public total: number = 0;
-    public limit: number = global.pagingLimit;
+    public limit: number = 100;
     public page: number = 1;
     public pages: number = 0;
     public offset: number = 0;
@@ -16,6 +17,7 @@ export default class Pagination<T = any> implements IPaginatedResults<T> {
     public errors: IError[];
 
     constructor(paginatedResults?: IPaginatedResults<T>) {
+        this.limit = StateManager.get("pagingLimit");
         if (paginatedResults) {
             this.docs = paginatedResults.docs || [];
             this.total = paginatedResults.total || 0;
@@ -114,9 +116,9 @@ export default class Pagination<T = any> implements IPaginatedResults<T> {
         return this;
     }
 
-    setLimit(limit: number = global.pagingLimit) {
+    setLimit(limit: number = StateManager.get("pagingLimit")) {
         if (limit < 0) {
-            limit = global.pagingLimit;
+            limit = StateManager.get("pagingLimit");
         }
         if (this.limit === limit) {
             return this;
@@ -174,7 +176,7 @@ export default class Pagination<T = any> implements IPaginatedResults<T> {
 
     reset() {
         this.total = 0;
-        this.limit = global.pagingLimit;
+        this.limit = StateManager.get("pagingLimit");
         this.page = 1;
         this.clear();
         return this;
@@ -182,6 +184,6 @@ export default class Pagination<T = any> implements IPaginatedResults<T> {
     
     static fromQuery(q: IQuery, total?: number) {
         const options: IQueryOptions = q?.options || {page: 1, limit: total};
-        return new Pagination().setTotal(total).setPage(options.page || 1).setLimit(options.limit || global.pagingLimit);
+        return new Pagination().setTotal(total).setPage(options.page || 1).setLimit(options.limit || StateManager.get("pagingLimit"));
     }
 }

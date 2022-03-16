@@ -1,4 +1,4 @@
-enum HttpVerb {
+export enum HttpVerb {
     ALL = "all", // cheat only for express
     GET = "get",
     POST = "post",
@@ -8,5 +8,3 @@ enum HttpVerb {
     HEAD = "head",
     OPTIONS = "options",
 }
-
-export default HttpVerb;

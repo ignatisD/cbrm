@@ -1,12 +1,15 @@
 import * as IORedis from "ioredis";
-import { reduce } from "lodash";
+import { reduce, cloneDeep } from "lodash";
 import * as uuid from "uuid";
-import Logger from "./Logger";
+import { Application } from "express";
+import { IRedisOptions } from "../interfaces/helpers/Redis";
+import { IConnector } from "../interfaces/helpers/Connector";
+import { Logger } from "./Logger";
 
 /**
  * A helper class proxying a subset of the available commands of the Redis database
  */
-export default class Redis {
+export class Redis implements IConnector {
 
 
     /**
@@ -27,17 +30,23 @@ export default class Redis {
      */
     public readonly maxAge: number = 259200; // 3 Days == refreshToken duration
 
-    constructor(options?: NodeJS.IRedisOptions) {
-        this._prefix = global.prefix + ":";
-        options = options || global.Redis;
-        if (options.prefix) {
-            this._prefix += options.prefix + ":";
+    constructor(options?: IRedisOptions) {
+        const redisOptions = cloneDeep(options || {});
+        redisOptions.host = redisOptions.host || "localhost";
+        redisOptions.port = redisOptions.port || 6379;
+        redisOptions.prefix = (redisOptions.prefix || "global").toString().toLowerCase();
+        if (redisOptions.prefix.substring(redisOptions.prefix.length - 1) !== ":") {
+            redisOptions.prefix += ":";
         }
-        options.prefix = this._prefix;
-        this._client = new IORedis(options);
+        this._prefix = redisOptions.prefix;
+        this._client = new IORedis(redisOptions);
         this._client.on("error" , (err) => {
             Logger.error("RedisError: " + err);
         });
+    }
+
+    public async init() {
+        return this._client.connect();
     }
 
     /**
@@ -57,9 +66,9 @@ export default class Redis {
     /**
      * Public method for retrieving the current active instance of the Redis class
      */
-    public static instance(): Redis {
+    public static instance(options?: IRedisOptions): Redis {
         if (!Redis._instance) {
-            Redis._instance = new Redis({...global.Redis, prefix: "global"});
+            Redis._instance = new Redis({...(options || {}), prefix: "global"});
         }
         return Redis._instance;
     }
@@ -251,5 +260,11 @@ export default class Redis {
      */
     public async getAll(key: string, start: number = 0, end: number = -1) {
         return await this._client.lrange(this._prefix + key, start, end);
+    }
+
+    public async onAppReady(app?: Application): Promise<void> {}
+
+    public async onDisconnect(): Promise<void> {
+        this._client.disconnect();
     }
 }

@@ -132,7 +132,7 @@ export declare class Agent implements Taggable, StartSpanFn {
     destroy(): void;
 
     // Utils
-    logger: Logger;
+    logger: ApmLogger;
 
     // Custom metrics
     registerMetric(name: string, callback: Function): void;
@@ -243,9 +243,9 @@ export interface AgentConfigOptions {
     kubernetesNodeName?: string;
     kubernetesPodName?: string;
     kubernetesPodUID?: string;
-    logLevel?: LogLevel;
+    logLevel?: ApmLogLevel;
     logUncaughtExceptions?: boolean;
-    logger?: Logger;
+    logger?: ApmLogger;
     maxQueueSize?: number;
     metricsInterval?: string; // Also support `number`, but as we're removing this functionality soon, there's no need to advertise it
     payloadLogFile?: string;
@@ -298,7 +298,7 @@ export interface ParameterizedMessageObject {
     params: Array<any>;
 }
 
-export interface Logger {
+export interface ApmLogger {
     fatal(msg: string, ...args: any[]): void;
 
     fatal(obj: {}, msg?: string, ...args: any[]): void;
@@ -337,7 +337,7 @@ export interface SpanOptions {
 
 export type CaptureBody = "off" | "errors" | "transactions" | "all";
 export type CaptureErrorLogStackTraces = "never" | "messages" | "always";
-export type LogLevel = "trace" | "debug" | "info" | "warn" | "warning" | "error" | "fatal" | "critical" | "off";
+export type ApmLogLevel = "trace" | "debug" | "info" | "warn" | "warning" | "error" | "fatal" | "critical" | "off";
 
 export type CaptureErrorCallback = (err: Error | null, id: string) => void;
 export type FilterFn = (payload: Payload) => Payload | boolean | void;

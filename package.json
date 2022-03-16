@@ -10,6 +10,7 @@
     "license": "MIT",
     "scripts": {
         "start": "NODE_OPTIONS=--max_old_space_size=8192 nodemon src/index.ts",
+        "start-test": "NODE_OPTIONS=--max_old_space_size=8192 nodemon tests/appTest.ts",
         "build": "tsc -b tsconfig.json",
         "test": "npm run eslint",
         "eslint": "eslint -c .eslintrc.js --ext .ts src",

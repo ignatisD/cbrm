@@ -3,4 +3,6 @@ export interface IServerConfiguration {
     envFile: string;
     languageOptions?: any;
     corsHeaders?: string[];
+    bodyLimit?: string;
+    queues?: boolean;
 }
