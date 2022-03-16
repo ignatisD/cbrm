@@ -94,7 +94,7 @@ export class Server<T extends GlobalState = GlobalState> {
         if (!this.config.languageOptions) {
             return;
         }
-        if (this.config.languageOptions === true) {
+        if (this.config.useDefaultLanguageOptions === true) {
             const { languageOptions } = require("./config/languageOptions");
             this.config.languageOptions = languageOptions;
         }

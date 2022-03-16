@@ -5,6 +5,6 @@ export interface IMultilingual {
 }
 
 export interface IExtraLanguageOptions {
-    fallbackLocale: string;
-    requiredLanguages: string[];
+    fallbackLocale?: string;
+    requiredLanguages?: string[];
 }
