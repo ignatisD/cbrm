@@ -8,13 +8,13 @@ import { INotifier } from "../interfaces/helpers/Notifier";
 import { EmailResponse } from "../interfaces/helpers/EmailResponse";
 import { Helpers } from "../helpers/Helpers";
 import { Logger } from "../helpers/Logger";
-import { StateManager } from "../helpers/StateManager";
+import { Configuration } from "../helpers/Configuration";
 
 export class NotificationMailer extends Email implements INotifier {
     protected _basePath: string;
     constructor(opts?: Mail.Options) {
         super(opts);
-        this._basePath = path.join(StateManager.get("ViewsRoot", __dirname),  "/");
+        this._basePath = path.join(Configuration.get("ViewsRoot", __dirname),  "/");
     }
 
     public async notify(notification: INotification) {
@@ -29,8 +29,9 @@ export class NotificationMailer extends Email implements INotifier {
                 ...notification,
                 moment: moment
             }, true);
-
-            this.setFrom(process.env.EMAIL_FROM, process.env.EMAIL_FROM_NAME);
+            const from = notification.params?.from || Configuration.get("appEmail");
+            const fromName = notification.params?.fromName || Configuration.get("appName");
+            this.setFrom(from, fromName);
             if (notification.user) {
                 this.setTo(notification.user.email, notification.user.fullName);
             }

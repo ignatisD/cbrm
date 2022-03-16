@@ -4,5 +4,5 @@ export interface IRedisOptions {
     host?: string;
     port?: number;
     prefix?: string;
-    API?: string;
+    apiName?: string;
 }

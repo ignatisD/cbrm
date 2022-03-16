@@ -22,7 +22,7 @@ export interface IQueuedJob extends IJobData {
     method: string;
     inputs: any[];
     tube: string;
-    api: string;
+    apiName: string;
     // optional
     instance?: boolean;
     title?: string;

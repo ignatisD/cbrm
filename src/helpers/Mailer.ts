@@ -11,17 +11,18 @@ export interface IMailerOptions {
 }
 export class Mailer {
 
-    protected options: SMTPTransport.Options;
+    protected _options: SMTPTransport.Options;
+    protected _transport: Mail;
     protected static _instance: Mail;
 
     constructor(opts: IMailerOptions) {
-        this.options = {
+        this._options = {
             host: opts.host,
             port: opts.port,
             secure: !!opts.secure
         };
         if (opts.user && opts.pass) {
-            this.options.auth = {
+            this._options.auth = {
                 type: "LOGIN",
                 user: opts.user,
                 pass: opts.pass
@@ -34,8 +35,17 @@ export class Mailer {
     }
 
     public static setup(opts: IMailerOptions): Mail {
-        const mailer = new Mailer(opts);
-        this._instance = nodemailer.createTransport(mailer.options);
-        return this._instance;
+        const transport = new Mailer(opts).transport();
+        if (!this._instance) {
+            this._instance = transport;
+        }
+        return transport;
+    }
+
+    public transport(): Mail {
+        if (!this._transport) {
+            this._transport = nodemailer.createTransport(this._options);
+        }
+        return this._transport;
     }
 }

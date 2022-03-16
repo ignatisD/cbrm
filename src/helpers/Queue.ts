@@ -15,7 +15,7 @@ import { Logger } from "./Logger";
 import { Registry } from "./Registry";
 import { cloneDeep } from "lodash";
 import { IRedisOptions } from "../interfaces/helpers/Redis";
-import { StateManager } from "./StateManager";
+import { Configuration } from "./Configuration";
 
 export class Queue {
 
@@ -37,7 +37,7 @@ export class Queue {
 
     protected static readonly _prefix = "queue";
     protected static options: Bull.QueueOptions;
-    protected static API: string = "cbrm";
+    protected static apiName: string = "cbrm";
 
     protected constructor() {
     }
@@ -46,7 +46,7 @@ export class Queue {
         return this.options?.prefix || "";
     }
 
-    public static getTube(tube: string = Tubes.NORMAL, api: string = this.API) {
+    public static getTube(tube: string = Tubes.NORMAL, api: string = this.apiName) {
         return `${api}_${tube}`;
     }
 
@@ -54,11 +54,11 @@ export class Queue {
         if (Queue.ready) {
             return Queue;
         }
-        this.API = (options?.API || StateManager.get("API", "cbrm")).toString();
+        this.apiName = (options?.apiName || Configuration.get("apiName", "cbrm")).toString();
         const prefix = (options?.prefix || "global").toString().toLowerCase();
         const redisOptions: IRedisOptions & IORedis.RedisOptions = cloneDeep(options || {});
         delete redisOptions.prefix;
-        delete redisOptions.API;
+        delete redisOptions.apiName;
         redisOptions.host = options.host || "localhost";
         redisOptions.port = options.port || 6379;
         redisOptions.maxRetriesPerRequest = null;
@@ -181,7 +181,7 @@ export class Queue {
         if (!Queue.ready) {
             throw new Error("Queues have not yet been initialized");
         }
-        const queueName = Queue.getTube(q.tube, q.api);
+        const queueName = Queue.getTube(q.tube, q.apiName);
         let queue: Bull.Queue = Queue.queues[queueName];
         let close = false;
         if (queue === undefined) {

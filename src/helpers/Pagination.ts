@@ -1,7 +1,7 @@
 import { IPaginatedResults } from "../interfaces/helpers/PaginatedResults";
 import { IError } from "../interfaces/helpers/Error";
 import { IQuery, IQueryOptions } from "../interfaces/helpers/Query";
-import { StateManager } from "./StateManager";
+import { Configuration } from "./Configuration";
 
 export class Pagination<T = any> implements IPaginatedResults<T> {
 
@@ -17,7 +17,7 @@ export class Pagination<T = any> implements IPaginatedResults<T> {
     public errors: IError[];
 
     constructor(paginatedResults?: IPaginatedResults<T>) {
-        this.limit = StateManager.get("pagingLimit");
+        this.limit = Configuration.get("pagingLimit");
         if (paginatedResults) {
             this.docs = paginatedResults.docs || [];
             this.total = paginatedResults.total || 0;
@@ -116,9 +116,9 @@ export class Pagination<T = any> implements IPaginatedResults<T> {
         return this;
     }
 
-    setLimit(limit: number = StateManager.get("pagingLimit")) {
+    setLimit(limit: number = Configuration.get("pagingLimit")) {
         if (limit < 0) {
-            limit = StateManager.get("pagingLimit");
+            limit = Configuration.get("pagingLimit");
         }
         if (this.limit === limit) {
             return this;
@@ -176,7 +176,7 @@ export class Pagination<T = any> implements IPaginatedResults<T> {
 
     reset() {
         this.total = 0;
-        this.limit = StateManager.get("pagingLimit");
+        this.limit = Configuration.get("pagingLimit");
         this.page = 1;
         this.clear();
         return this;
@@ -184,6 +184,6 @@ export class Pagination<T = any> implements IPaginatedResults<T> {
     
     static fromQuery(q: IQuery, total?: number) {
         const options: IQueryOptions = q?.options || {page: 1, limit: total};
-        return new Pagination().setTotal(total).setPage(options.page || 1).setLimit(options.limit || StateManager.get("pagingLimit"));
+        return new Pagination().setTotal(total).setPage(options.page || 1).setLimit(options.limit || Configuration.get("pagingLimit"));
     }
 }

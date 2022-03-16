@@ -1,20 +1,17 @@
 import * as path from "path";
 import { Request, Response } from "express";
 import { Options } from "nodemailer/lib/mailer";
-import { Controller } from "../../src";
-import { IAppRoutes, ISimpleRoute } from "../../src";
-import { IRoute } from "../../src";
-import { PermissionLevel } from "../../src";
-import { JsonResponse } from "../../src";
+import * as cbrm from "../../src";
 import { ApplicationBusiness } from "../business/ApplicationBusiness";
+import { Logger } from "../../src";
 
-export class ApplicationController extends Controller<ApplicationBusiness> implements IAppRoutes {
+export class ApplicationController extends cbrm.Controller<ApplicationBusiness> implements cbrm.IAppRoutes {
 
     constructor() {
         super(ApplicationBusiness);
     }
 
-    public routes(): IRoute[] {
+    public routes(): cbrm.IRoute[] {
         return [
             {
                 name: "Api Index",
@@ -29,7 +26,7 @@ export class ApplicationController extends Controller<ApplicationBusiness> imple
                 verb: "get",
                 method: "getRoutes",
                 ctrl: this,
-                permission: PermissionLevel.VIEW,
+                permission: cbrm.PermissionLevel.VIEW,
                 permissionsConfig: {
                     model: "Route"
                 }
@@ -57,17 +54,17 @@ export class ApplicationController extends Controller<ApplicationBusiness> imple
     }
 
     public getRoutes(req: Request, res: Response) {
-        let routes: ISimpleRoute[] = ApplicationController.getRouting(this.routes());
-        return res.json(new JsonResponse().ok(routes, "routes"));
+        let routes: cbrm.ISimpleRoute[] = ApplicationController.getRouting(this.routes());
+        return res.json(new cbrm.JsonResponse().ok(routes, "routes"));
     }
 
-    public static getRouting(_routes: IRoute[], parentPath: string = ""): ISimpleRoute[] {
-        let routes: ISimpleRoute[] = [];
-        _routes.forEach((_route: IRoute) => {
+    public static getRouting(_routes: cbrm.IRoute[], parentPath: string = ""): cbrm.ISimpleRoute[] {
+        let routes: cbrm.ISimpleRoute[] = [];
+        _routes.forEach((_route: cbrm.IRoute) => {
             if (!_route.name) {
                 return;
             }
-            let route: ISimpleRoute = {
+            let route: cbrm.ISimpleRoute = {
                 name: _route.name,
                 path: path.join(parentPath, _route.path),
                 permissions: _route.permissions
@@ -82,7 +79,7 @@ export class ApplicationController extends Controller<ApplicationBusiness> imple
 
     index(req: Request, res: Response): void {
         try {
-            res.json(new JsonResponse().ok({
+            res.json(new cbrm.JsonResponse().ok({
                 title: "Hello world!",
                 mode: process.env.NODE_ENV,
                 host: process.env.HOSTNAME,
@@ -90,31 +87,38 @@ export class ApplicationController extends Controller<ApplicationBusiness> imple
                 pm2: process.env.NODE_APP_INSTANCE
             }));
         } catch (e) {
-            res.status(500).json(new JsonResponse().exception(e));
+            res.status(500).json(new cbrm.JsonResponse().exception(e));
         }
     }
 
     async testQueues(req: Request, res: Response) {
         try {
-            const response = await this.business(req).testQueues();
+            const emailOptions: Options = {
+                from: cbrm.Configuration.get("appEmail"),
+                to: "example@example.com",
+                subject: "Test email from Queue",
+                html: "<h1>Hello Queue!</h1>"
+            };
+            const response = await this.business(req).testQueues(emailOptions);
             res.json(response);
         } catch (e) {
-            res.status(500).json(new JsonResponse().exception(e));
+            res.status(500).json(new cbrm.JsonResponse().exception(e));
         }
     }
 
     async testEmail(req: Request, res: Response) {
         try {
             const emailOptions: Options = {
-                from: "ignatios@drakoulas.gr",
-                to: process.env.APPLICATION_EMAIL,
+                from: cbrm.Configuration.get("appEmail"),
+                to: "ignatios@drakoulas.gr",
                 subject: "Test email",
                 html: "<h1>Hello World!</h1>"
             };
             const response = await this.business(req).notifyEmail(emailOptions);
             res.json(response);
         } catch (e) {
-            res.status(500).json(new JsonResponse().exception(e));
+            this.exception(req, e, "testEmail");
+            res.status(500).json(new cbrm.JsonResponse().exception(e));
         }
     }
 }

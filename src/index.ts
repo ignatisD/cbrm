@@ -1,6 +1,4 @@
 // Interfaces
-import "./interfaces/types/apm";
-import "./interfaces/types/express";
 export * from "./interfaces/business/BusinessLike";
 export * from "./interfaces/business/BusinessBase";
 
@@ -12,7 +10,7 @@ export * from "./interfaces/controllers/ControllerBase";
 export * from "./interfaces/helpers/Connector";
 export * from "./interfaces/helpers/EmailResponse";
 export * from "./interfaces/helpers/Error";
-export * from "./interfaces/helpers/GlobalState";
+export * from "./interfaces/helpers/GlobalConfiguration";
 export * from "./interfaces/helpers/LogLevel";
 export * from "./interfaces/helpers/Mapping";
 export * from "./interfaces/helpers/Multilingual";
@@ -29,7 +27,6 @@ export * from "./interfaces/helpers/ReadPreference";
 export * from "./interfaces/helpers/Redis";
 export * from "./interfaces/helpers/Response";
 export * from "./interfaces/helpers/Route";
-export * from "./interfaces/helpers/ServerConfiguration";
 export * from "./interfaces/helpers/Write";
 
 export * from "./interfaces/models/Model";
@@ -63,7 +60,7 @@ export * from "./helpers/Registry";
 export * from "./helpers/ResponseError";
 export * from "./helpers/Route";
 export * from "./helpers/Sockets";
-export * from "./helpers/StateManager";
+export * from "./helpers/Configuration";
 export * from "./helpers/Tubes";
 export * from "./helpers/Validator";
 

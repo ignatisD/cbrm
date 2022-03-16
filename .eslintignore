@@ -1,3 +1,4 @@
 /process.config.js
 /.eslintrc.js
 /tests/**/*
+/src/@types

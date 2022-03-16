@@ -21,7 +21,7 @@ import { Tubes } from "../helpers/Tubes";
 import { IError } from "../interfaces/helpers/Error";
 import { Logger } from "../helpers/Logger";
 import { Registry } from "../helpers/Registry";
-import { StateManager } from "../helpers/StateManager";
+import { Configuration } from "../helpers/Configuration";
 
 export class Business<T = any> implements IBusinessLike {
 
@@ -34,7 +34,7 @@ export class Business<T = any> implements IBusinessLike {
     protected _start: number;
     protected _heap: number;
     protected _repo: IRepository;
-    protected _global: StateManager<any>;
+    protected _global: Configuration<any>;
 
     public tube: string;
     public nextTube: string;
@@ -45,7 +45,7 @@ export class Business<T = any> implements IBusinessLike {
         this._repo = repo;
         this.tube = Tubes.NORMAL;
         this.nextTube = Tubes.NORMAL;
-        this._global = StateManager.instance();
+        this._global = Configuration.instance();
     }
 
     public get modelName() {

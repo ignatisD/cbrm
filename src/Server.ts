@@ -17,9 +17,8 @@ import * as v8 from "v8";
 
 // Interfaces
 import { IConnector } from "./interfaces/helpers/Connector";
-import { IServerConfiguration } from "./interfaces/helpers/ServerConfiguration";
 import { IRoute } from "./interfaces/helpers/Route";
-import { GlobalState } from "./interfaces/helpers/GlobalState";
+import { GlobalConfiguration } from "./interfaces/helpers/GlobalConfiguration";
 
 // Set Logger
 import { Logger } from "./helpers/Logger";
@@ -30,7 +29,7 @@ import { Authenticator } from "./helpers/Authenticator";
 import { Helpers } from "./helpers/Helpers";
 import { IMailerOptions, Mailer } from "./helpers/Mailer";
 import { Queue } from "./helpers/Queue";
-import { StateManager } from "./helpers/StateManager";
+import { Configuration } from "./helpers/Configuration";
 import { Route } from "./helpers/Route";
 import { JsonResponse } from "./helpers/JsonResponse";
 import { Redis } from "./helpers/Redis";
@@ -39,7 +38,7 @@ import { Redis } from "./helpers/Redis";
  * Server class
  * @param envFile Is the path of the environmental variables file
  */
-export class Server<T extends GlobalState = GlobalState> {
+export class Server<T extends GlobalConfiguration = GlobalConfiguration> {
 
     protected static authenticator: typeof Authenticator = null;
     static up: boolean = false;
@@ -57,23 +56,21 @@ export class Server<T extends GlobalState = GlobalState> {
     protected _server: http.Server|https.Server = null;
     protected _dbPromise: Promise<any> = new Promise(() => void 0);
     protected _connector: IConnector = null;
-    protected readonly _configuration: IServerConfiguration;
-    protected readonly _global: StateManager<T>;
+    protected readonly _configuration: Configuration<T>;
 
-    constructor(configuration: IServerConfiguration) {
+    constructor(configuration: Configuration<T>) {
         this._configuration = configuration;
-        this._global = StateManager.instance<T>();
     }
 
     public static setAuthenticator(authenticator: typeof Authenticator = null) {
         this.authenticator = authenticator;
     }
 
-    public static bootstrap<G extends GlobalState>(configuration: IServerConfiguration): Promise<Server<G>> {
+    public static bootstrap<G extends GlobalConfiguration>(configuration: Configuration<G>): Promise<Server<G>> {
         return new this<G>(configuration).init();
     }
 
-    public static test<G extends GlobalState>(configuration: IServerConfiguration): Server<G> {
+    public static test<G extends GlobalConfiguration>(configuration: Configuration<G>): Server<G> {
         const server = new this<G>(configuration);
         server.env();
         server.configure();
@@ -90,19 +87,43 @@ export class Server<T extends GlobalState = GlobalState> {
         return new Promise(() => void 0);
     }
 
+    public setupRedis() {
+        const redisOptions = Redis.config(process.env.REDIS_HOST || "redis", process.env.REDIS_PORT, process.env.REDIS_MONITOR, process.env.REDIS_HOSTS);
+        redisOptions.apiName = this.config.get("apiName");
+        this.config.set("Redis", redisOptions);
+    }
+
+    public mailerSetup() {
+        const mailOptions: IMailerOptions = {
+            host: process.env.SMTP_HOST,
+            port: process.env.SMTP_PORT ? parseInt(process.env.SMTP_PORT) : 465
+        };
+        if (process.env.SMTP_SECURE) {
+            mailOptions.secure = true;
+        }
+        if (process.env.SMTP_AUTH_USER && process.env.SMTP_AUTH_PASS) {
+            mailOptions.user = process.env.SMTP_AUTH_USER;
+            mailOptions.pass = process.env.SMTP_AUTH_PASS;
+        }
+        this.config.set("appEmail", process.env.APP_EMAIL);
+        this.config.set("appName", process.env.APP_NAME);
+        return Mailer.setup(mailOptions);
+    }
+
     public i18nStart() {
-        if (!this.config.languageOptions) {
+        if (!this.config.has("languageOptions")) {
             return;
         }
-        if (this.config.useDefaultLanguageOptions === true) {
-            const { languageOptions } = require("./config/languageOptions");
-            this.config.languageOptions = languageOptions;
+        let languageOptions = this.config.get("languageOptions", {});
+        if (this.config.get("useDefaultLanguageOptions", false) === true) {
+            languageOptions = require("./config/languageOptions").languageOptions;
+            this.config.set("languageOptions", languageOptions);
         }
-        this._global.set("languages", this.config.languageOptions.locales);
-        this._global.set("requiredLanguages", this.config.languageOptions.requiredLanguages);
-        this._global.set("defaultLanguage", this.config.languageOptions.defaultLocale || "en");
-        this._global.set("fallbackLanguage", this.config.languageOptions.fallbackLocale);
-        i18n.configure(this.config.languageOptions);
+        this.config.set("languages", languageOptions.locales);
+        this.config.set("requiredLanguages", languageOptions.requiredLanguages);
+        this.config.set("defaultLanguage", languageOptions.defaultLocale || "en");
+        this.config.set("fallbackLanguage", languageOptions.fallbackLocale);
+        i18n.configure(languageOptions);
         this.app.use(i18n.init);
     }
 
@@ -137,16 +158,16 @@ export class Server<T extends GlobalState = GlobalState> {
     }
 
     public bootstrapWorkers() {
-        if (this.config.queues && this._global.has("Redis")) {
+        if (this.config.get("queues") && this.config.has("Redis")) {
             Logger.debug("Starting queues");
-            Queue.bootstrap(this._global.get("Redis", {}), this._global.get("isMainWorker", false) ? this.app : null);
+            Queue.bootstrap(this.config.get("Redis", {}), this.config.get("isMainWorker", false) ? this.app : null);
         }
     }
 
     public async workersListen() {
-        if (this.config.queues && this._global.has("Redis") && this._global.get("isWorker", false)) {
+        if (this.config.get("queues") && this.config.has("Redis") && this.config.get("isWorker", false)) {
             await this._dbPromise;
-            Queue.workersListen(this._global.get("isMainWorker", false));
+            Queue.workersListen(this.config.get("isMainWorker", false));
             Logger.success("Workers are listening");
         }
     }
@@ -186,16 +207,11 @@ export class Server<T extends GlobalState = GlobalState> {
 
     public env() {
         // Load environment variables from .env file, where API keys and passwords are configured.
-        dotenv.config({path: this.config.envFile});
-        this._global.set("envFile", this.config.envFile);
-        this._global.set("prefix", process.env.PREFIX || "dev");
-        this._global.set("buildNumber", process.env.BUILD || "build-dev");
-        this._global.set("isDevMode", process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test");
-        this._global.set("isWorker", this._global.get("isDevMode", false) || process.env.NODE_ENV === "worker");
-        this._global.set("isMainWorker", this._global.get("isDevMode", false) || process.env.NODE_TYPE === "main-worker");
+        dotenv.config({path: this.config.get("envFile", ".env")});
     }
 
     public configure() {
+        Logger.setStatics(process.env.DEBUG !== "false", `${process.env.NODE_ENV}@${process.env.HOSTNAME}`);
         require("events").EventEmitter.defaultMaxListeners = 100;
 
         this.port = parseInt(process.env.NODE_PORT || "3000");
@@ -207,26 +223,20 @@ export class Server<T extends GlobalState = GlobalState> {
         this._secret = process.env.SECRET_OR_KEY || this._secret;
         this._logFormat = process.env.LOG_FORMAT || this._logFormat;
 
-        const mailOptions: IMailerOptions = {
-            host: process.env.SMTP_HOST,
-            port: process.env.SMTP_PORT ? parseInt(process.env.SMTP_PORT) : 465
-        };
-        if (process.env.SMTP_SECURE) {
-            mailOptions.secure = true;
+        this.config.set("prefix", process.env.PREFIX || "dev");
+        this.config.set("buildNumber", process.env.BUILD || "build-dev");
+        this.config.set("isDevMode", process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test");
+        this.config.set("isWorker", this.config.get("isDevMode", false) || process.env.NODE_ENV === "worker");
+        this.config.set("isMainWorker", this.config.get("isDevMode", false) || process.env.NODE_TYPE === "main-worker");
+        this.config.set("ServerRoot", path.resolve(__dirname));
+        this.config.set("ViewsRoot", path.join(__dirname, "../views"));
+        this.config.set("pagingLimit", 100);
+        if (process.env.SMTP_HOST) {
+            this.mailerSetup();
         }
-        if (process.env.SMTP_AUTH_USER && process.env.SMTP_AUTH_PASS) {
-            mailOptions.user = process.env.SMTP_AUTH_USER;
-            mailOptions.pass = process.env.SMTP_AUTH_PASS;
+        if (process.env.REDIS_HOST) {
+            this.setupRedis();
         }
-        Mailer.setup(mailOptions);
-        Logger.setStatics(process.env.DEBUG !== "false", `${process.env.NODE_ENV}@${process.env.HOSTNAME}`);
-        this._global.set("API", this.config.apiName || "cbrm");
-        this._global.set("ServerRoot", path.resolve(__dirname));
-        this._global.set("ViewsRoot", path.join(__dirname, "../views"));
-        this._global.set("pagingLimit", 100);
-        const redisOptions = Redis.config(process.env.REDIS_HOST || "redis", process.env.REDIS_PORT, process.env.REDIS_MONITOR, process.env.REDIS_HOSTS);
-        redisOptions.API = this._global.get("API");
-        this._global.set("Redis", redisOptions);
     }
 
     public async express() {
@@ -235,12 +245,12 @@ export class Server<T extends GlobalState = GlobalState> {
             this.app.use(new Server.authenticator(this._secret).initialize());
         }
 
-        if (this._global.has("ViewsRoot")) {
-            this.app.set("views", this._global.get("ViewsRoot"));
+        if (this.config.has("ViewsRoot")) {
+            this.app.set("views", this.config.get("ViewsRoot"));
             this.app.set("view engine", "pug");
         }
         // Global RenderHTML fro pug templates
-        this._global.set("renderHTML", Helpers.renderHTML(this.app));
+        this.config.set("renderHTML", Helpers.renderHTML(this.app));
 
         // Express configuration.
         this.app.set("port", this.port);
@@ -262,9 +272,9 @@ export class Server<T extends GlobalState = GlobalState> {
         this.app.use(cors({
             origin: (origin, cb) => cb(null, this.cors.includes("*") || this.cors.includes(origin)),
             credentials: true,
-            exposedHeaders: this.config.corsHeaders || [
+            exposedHeaders: this.config.get("corsHeaders", [
                 "x-build-number"
-            ]
+            ])
         }));
         logger.token<express.Request>("real_ip", (req, res) => {
             return Helpers.requestIp(req);
@@ -276,7 +286,7 @@ export class Server<T extends GlobalState = GlobalState> {
             }
         }));
         this.app.use(cookieParser());
-        this.app.use(bodyParser.json({limit: this.config.bodyLimit || "50mb"}));
+        this.app.use(bodyParser.json({limit: this.config.get("bodyLimit",  "50mb")}));
         this.app.use(bodyParser.urlencoded({extended: true}));
 
 
@@ -284,7 +294,7 @@ export class Server<T extends GlobalState = GlobalState> {
 
         this.app.use((req, res, next) => {
             let locale: string;
-            const languages = this._global.get("languages", []);
+            const languages = this.config.get("languages", []);
             if (req.query.lang && languages.indexOf(req.query.lang.toString()) !== -1) {
                 locale = req.query.lang.toString();
             } else if (req.query.l && languages.indexOf(req.query.l.toString()) !== -1) {
@@ -294,7 +304,7 @@ export class Server<T extends GlobalState = GlobalState> {
             } else if (req.headers["x-lang"] && languages.indexOf(req.headers["x-lang"].toString()) !== -1) {
                 locale = req.headers["x-lang"].toString();
             } else {
-                locale = Helpers.getLangByReferer(req.headers.referer) || this._global.get("defaultLanguage", "en");
+                locale = Helpers.getLangByReferer(req.headers.referer) || this.config.get("defaultLanguage", "en");
             }
             req.setLocale(locale);
 
@@ -348,7 +358,7 @@ export class Server<T extends GlobalState = GlobalState> {
         this._server.timeout = this.serverTimeout;
 
         this._server.on("listening", () => {
-            Logger.success(`  App is running at http://${this._global.get("API", "cbrm")}:${this.port} in ${process.env.NODE_ENV} mode`);
+            Logger.success(`  App is running at http://${this.config.get("apiName", "cbrm")}:${this.port} in ${process.env.NODE_ENV} mode`);
             Logger.debug("  Press CTRL+C to stop");
         });
 

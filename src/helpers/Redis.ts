@@ -5,7 +5,7 @@ import { Application } from "express";
 import { IRedisOptions } from "../interfaces/helpers/Redis";
 import { IConnector } from "../interfaces/helpers/Connector";
 import { Logger } from "./Logger";
-import { StateManager } from "./StateManager";
+import { Configuration } from "./Configuration";
 
 /**
  * A helper class proxying a subset of the available commands of the Redis database
@@ -96,7 +96,7 @@ export class Redis implements IConnector {
      */
     public static instance(): Redis {
         if (!Redis._instance) {
-            Redis._instance = new Redis({...StateManager.get("Redis", {}), prefix: "global"});
+            Redis._instance = new Redis({...Configuration.get("Redis", {}), prefix: "global"});
         }
         return Redis._instance;
     }

@@ -12,7 +12,7 @@ import { Tubes } from "./Tubes";
 import { JsonResponse } from "./JsonResponse";
 import { Redis } from "./Redis";
 import { Logger } from "./Logger";
-import { StateManager } from "./StateManager";
+import { Configuration } from "./Configuration";
 import { Registry } from "./Registry";
 
 export class QueuedJob implements IQueuedJob {
@@ -30,7 +30,7 @@ export class QueuedJob implements IQueuedJob {
     public socket: string;
 
     public uniqueId: string;
-    public api: string;
+    public apiName: string;
     public tube: string = Tubes.NORMAL;
     public businessTube: string;
     public notification: INotification;
@@ -69,8 +69,8 @@ export class QueuedJob implements IQueuedJob {
         return this._id;
     }
 
-    public setApi(api?: string) {
-        this.api = api || StateManager.get("API", "cbrm");
+    public setApi(apiName?: string) {
+        this.apiName = apiName || Configuration.get("apiName", "cbrm");
         return this;
     }
 
@@ -198,7 +198,7 @@ export class QueuedJob implements IQueuedJob {
         try {
             response.set("details", this.getData(false));
             // Only check local businesses
-            if (this.api === StateManager.get("API", "cbrm")) {
+            if (this.apiName === Configuration.get("apiName", "cbrm")) {
                 const BusinessClass = Registry.get(this.business);
                 if (!BusinessClass) {
                     return response.error(`Business not registered: ${this.business}`);
@@ -431,7 +431,7 @@ export class QueuedJob implements IQueuedJob {
                 await instance.delete(onCompleteKey);
                 const q = new QueuedJob(job.business)
                     .setup(job.method, job.inputs, job.instance !== false)
-                    .setApi(job.api);
+                    .setApi(job.apiName);
                 if (job.delay) {
                     q.later(job.delay);
                 }

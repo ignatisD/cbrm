@@ -5,6 +5,7 @@ import { renderFile } from "pug";
 import { JsonResponse } from "./JsonResponse";
 import { EmailResponse } from "../interfaces/helpers/EmailResponse";
 import { Mailer } from "./Mailer";
+import { Logger } from "./Logger";
 
 export class Email implements Mail.Options {
 
@@ -118,8 +119,9 @@ export class Email implements Mail.Options {
             .then((res: EmailResponse) => {
                 return response.ok(res);
             })
-            .catch((err) => {
-                return response.exception(err);
+            .catch((e) => {
+                Logger.exception(e, this);
+                return response.exception(e);
             });
     }
 }

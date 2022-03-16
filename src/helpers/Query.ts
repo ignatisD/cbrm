@@ -11,7 +11,7 @@ import {
 import { Helpers } from "./Helpers";
 import { ReadPreference } from "../interfaces/helpers/ReadPreference";
 import { Logger } from "./Logger";
-import { StateManager } from "./StateManager";
+import { Configuration } from "./Configuration";
 
 export class Query implements IQuery {
 
@@ -56,8 +56,8 @@ export class Query implements IQuery {
     };
 
     constructor(limit?: number, st?: IQuery) {
-        this.locale = StateManager.get("defaultLanguage", "en");
-        this.options.limit = StateManager.get("pagingLimit");
+        this.locale = Configuration.get("defaultLanguage", "en");
+        this.options.limit = Configuration.get("pagingLimit");
         if (limit) {
             this.options.limit = limit < 0 ? undefined : limit;
         }
@@ -293,8 +293,8 @@ export class Query implements IQuery {
     }
 
     public fromInputs(data) {
-        let limit = data.limit === "0" || data.limit === 0 ? -1 : parseInt((data.limit || data._limit || StateManager.get("pagingLimit")).toString());
-        limit = limit < -1 ? StateManager.get("pagingLimit") : limit;
+        let limit = data.limit === "0" || data.limit === 0 ? -1 : parseInt((data.limit || data._limit || Configuration.get("pagingLimit")).toString());
+        limit = limit < -1 ? Configuration.get("pagingLimit") : limit;
         this.setPaging(parseInt((data.page || data._page || 1).toString()), limit);
         if (data.lean && data.lean !== "0" && data.lean !== "false") {
             this.setLean(true);
@@ -955,7 +955,7 @@ export class Query implements IQuery {
     }
 
     public setLocale(locale?: string, collation: boolean = false) {
-        this.locale = locale || StateManager.get("defaultLanguage", "en");
+        this.locale = locale || Configuration.get("defaultLanguage", "en");
         this.options.language = this.locale;
         if (collation) {
             this.options.collation = {locale: this.locale};
@@ -982,7 +982,7 @@ export class Query implements IQuery {
 
     public setPaging(page: number, limit?: number) {
         this.options.page = page || 1;
-        this.options.limit = limit || StateManager.get("pagingLimit");
+        this.options.limit = limit || Configuration.get("pagingLimit");
         if (this.options.limit === -1) {
             delete this.options.limit;
         }
@@ -1050,7 +1050,7 @@ export class Query implements IQuery {
                 } // either exact match or start of multilang
                 if (field.length !== key.length) { // multiLang match
                     const value = Query.escapeRegex(this.filters[key]);
-                    this.filters["$or"] = StateManager.get("languages", []).map((lang) => {
+                    this.filters["$or"] = Configuration.get("languages", []).map((lang) => {
                         return {
                             [`${key}.${lang}`]: {
                                 $regex: `.*${value}.*`,
@@ -1061,7 +1061,7 @@ export class Query implements IQuery {
                     this.removeFilter(key);
                     this.opFilters.push({
                         key: "or",
-                        value: StateManager.get("languages", []).map((lang) => {
+                        value: Configuration.get("languages", []).map((lang) => {
                             return new Query().setFilter(`${key}.${lang}`, new RegExp(`.*${value}.*`, "i"), "$regex");
                         }),
                         op: "$bool"
