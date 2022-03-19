@@ -2,7 +2,7 @@ import { ConfigurationOptions } from "i18n";
 import { IRedisOptions } from "./Redis";
 import { IExtraLanguageOptions } from "./Multilingual";
 
-export interface GlobalConfiguration {
+export interface GlobalConfiguration extends Record<string, any> {
     // Required configurations
     envFile: string;
     apiName: string;

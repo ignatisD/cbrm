@@ -17,6 +17,8 @@ export interface IRoute {
     permission?: string|number;
     permissionsConfig?: IPermissionsConfig;
     register?(router: express.Router): void;
+
+    authenticator?: any;
 }
 
 

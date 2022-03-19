@@ -8,6 +8,7 @@ import { IPermissionsConfig, PermissionLevel } from "../interfaces/models/Permis
 import { Authenticator } from "./Authenticator";
 import { Logger } from "./Logger";
 import { Registry } from "./Registry";
+import { HttpVerb } from "./HttpVerb";
 
 export class Route implements IRoute {
 
@@ -18,7 +19,7 @@ export class Route implements IRoute {
 
     routes?: IRoute[];
 
-    verb?: "get"|"post"|"put"|"delete"|"patch"|"head"|"options"|"all";
+    verb?: HttpVerb;
     ctrl?: IController;
     method?: string;
 
@@ -31,7 +32,7 @@ export class Route implements IRoute {
 
     constructor(route: IRoute, authenticator?: typeof Authenticator) {
         Object.assign(this, route);
-        if (authenticator) {
+        if (authenticator && !this.authenticator) {
             this.authenticator = authenticator;
         }
     }
@@ -50,7 +51,7 @@ export class Route implements IRoute {
         try {
             let actualPath = path.join(parentPath, this.path);
             if (this.ctrl && this.method) {
-                if ("registry" in this.ctrl) {
+                if (typeof this.ctrl.registry === "function") {
                     const registry = this.ctrl.registry();
                     if (registry?.name && !Registry.has(registry.name)) {
                         Registry.set(registry.name, registry.business);

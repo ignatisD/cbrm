@@ -190,14 +190,12 @@ export class Helpers {
         return parseFloat(amount.toFixed(decimals));
     }
 
-    public static toArray<T>(objOrArray: T | T[], safeCheck = false): T[] {
+    public static toArray<T>(objOrArray: T | T[]): T[] {
         if (!objOrArray) {
             return [];
         }
         if (Array.isArray(objOrArray)) {
             return objOrArray;
-        } else if (safeCheck && Object.keys(objOrArray).length === 0) {
-            return [];
         }
         return [objOrArray];
     }

@@ -1,11 +1,13 @@
+import { Application } from "express";
 import { GlobalConfiguration } from "../interfaces/helpers/GlobalConfiguration";
 import { IConnector } from "../interfaces/helpers/Connector";
-import { Application } from "express";
+import { IStorage } from "../interfaces/helpers/Storage";
+import { Helpers } from "./Helpers";
 
-export class Configuration<T extends Record<string, any>> implements IConnector {
+export class Configuration<T extends Record<string, any>> implements IConnector, IStorage {
 
     protected static _instance: Configuration<Record<string, any>>;
-    protected _store: any = {};
+    protected _store: Partial<T> = {};
 
     constructor() {}
 
@@ -28,7 +30,7 @@ export class Configuration<T extends Record<string, any>> implements IConnector 
 
     public setup(config?: T) {
         if (config && typeof config === "object") {
-            Object.keys(config).forEach(key => {
+            Object.keys(config).forEach((key: keyof T) => {
                 this._store[key] = config[key];
             });
         }
@@ -46,6 +48,25 @@ export class Configuration<T extends Record<string, any>> implements IConnector 
 
     public set<K extends keyof T>(key: K, value: T[K]): this {
         this._store[key] = value;
+        return this;
+    }
+
+    public push<K extends keyof T>(key: K, values: T[K]): this {
+        if (!key) {
+            return this;
+        }
+        if (typeof this._store[key] === "undefined") {
+            this._store[key] = <T[K]>[];
+        }
+        if (this._store[key].push === "undefined") {
+            return this;
+        }
+        this._store[key].push(...Helpers.toArray(values));
+        return this;
+    }
+
+    public unset<K extends keyof T>(key: K): this {
+        delete this._store[key];
         return this;
     }
 

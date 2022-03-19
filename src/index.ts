@@ -7,6 +7,7 @@ export * from "./interfaces/controllers/WriteController";
 export * from "./interfaces/controllers/Controller";
 export * from "./interfaces/controllers/ControllerBase";
 
+export * from "./interfaces/helpers/Authenticator";
 export * from "./interfaces/helpers/Connector";
 export * from "./interfaces/helpers/EmailResponse";
 export * from "./interfaces/helpers/Error";

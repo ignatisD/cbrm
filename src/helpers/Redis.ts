@@ -6,11 +6,12 @@ import { IRedisOptions } from "../interfaces/helpers/Redis";
 import { IConnector } from "../interfaces/helpers/Connector";
 import { Logger } from "./Logger";
 import { Configuration } from "./Configuration";
+import { IStorage } from "../interfaces/helpers/Storage";
 
 /**
  * A helper class proxying a subset of the available commands of the Redis database
  */
-export class Redis implements IConnector {
+export class Redis implements IConnector, IStorage {
 
 
     /**
@@ -106,13 +107,17 @@ export class Redis implements IConnector {
      * @param data
      */
     public static stringify(data: any): string {
-        let actual: {data: any} = {
-            data: reduce(data, function(memo, val, key) {
-                if (typeof val !== "function" && key !== "password")
-                    memo[key] = val;
-                return memo;
-            }, {})
+        const actual: {data: any} = {
+            data: typeof data === "function" ? null : data
         };
+        if (typeof data === "object") {
+            actual.data = reduce(data, function(memo, val, key) {
+                if (typeof val !== "function") {
+                    memo[key] = val;
+                }
+                return memo;
+            }, {});
+        }
         return JSON.stringify(actual);
     }
 
@@ -121,6 +126,7 @@ export class Redis implements IConnector {
             const results = JSON.parse(str);
             return results?.data;
         } catch (e) {
+            Logger.exception(e, "Redis.parse");
             return null;
         }
     }
@@ -163,9 +169,23 @@ export class Redis implements IConnector {
      * Retrieves and parses the given key's value from the database.
      * @param {string} key
      */
-    public async get(key: string) {
+    public async get(key: string): Promise<any> {
         const response = await this._client.get(this._prefix + key);
         return Redis.parse(response);
+    }
+
+    /**
+     * Check if the given keys exist
+     * @param key
+     * @param moreKeys
+     */
+    public async has(key: string, ...moreKeys: string[]): Promise<boolean> {
+        const keys: string[] = [this._prefix + key];
+        if (moreKeys?.length) {
+            keys.push(...moreKeys.map(k => this._prefix + k));
+        }
+        const response = await this._client.exists(...keys);
+        return response === keys.length;
     }
 
     /**
@@ -264,8 +284,16 @@ export class Redis implements IConnector {
      * Removes the given key from the database
      * @param {string} key
      */
-    public async delete(key: string) {
+    public async delete(key: string): Promise<number> {
         return await this._client.del(this._prefix + key);
+    }
+
+    /**
+     * Alias for delete
+     * @param key
+     */
+    public async unset(key: string): Promise<number> {
+        return this.delete(key);
     }
 
     /**
@@ -274,7 +302,7 @@ export class Redis implements IConnector {
      * @param {string[]} items
      * @param {number|undefined} maxAge
      */
-    public async push(key: string, items: string[], maxAge?: number) {
+    public async push(key: string, items: string[], maxAge?: number): Promise<number> {
         const result = await this._client.lpush(this._prefix + key, ...items);
         await this.expire(key, maxAge);
         return result;
@@ -286,7 +314,7 @@ export class Redis implements IConnector {
      * @param {number} start
      * @param {number} end
      */
-    public async getAll(key: string, start: number = 0, end: number = -1) {
+    public async getAll(key: string, start: number = 0, end: number = -1): Promise<string[]> {
         return await this._client.lrange(this._prefix + key, start, end);
     }
 

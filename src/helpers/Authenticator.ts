@@ -300,7 +300,7 @@ export class Authenticator {
         return userResponse.user || null;
     }
 
-    public static checkForUser() {
+    public static checkForUser(): express.RequestHandler {
         return async (req: express.Request, res: express.Response, next: express.NextFunction) => {
             const authorization = req.header("authorization");
             if (authorization) {
