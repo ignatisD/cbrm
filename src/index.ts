@@ -28,6 +28,7 @@ export * from "./interfaces/helpers/ReadPreference";
 export * from "./interfaces/helpers/Redis";
 export * from "./interfaces/helpers/Response";
 export * from "./interfaces/helpers/Route";
+export * from "./interfaces/helpers/Storage";
 export * from "./interfaces/helpers/Write";
 
 export * from "./interfaces/models/Model";
@@ -44,6 +45,7 @@ export * from "./interfaces/validators/ValidatorBase";
 
 // Helpers
 export * from "./helpers/Authenticator";
+export * from "./helpers/Configuration";
 export * from "./helpers/Email";
 export * from "./helpers/Holder";
 export * from "./helpers/HttpMethod";
@@ -61,7 +63,7 @@ export * from "./helpers/Registry";
 export * from "./helpers/ResponseError";
 export * from "./helpers/Route";
 export * from "./helpers/Sockets";
-export * from "./helpers/Configuration";
+export * from "./helpers/Storage";
 export * from "./helpers/Tubes";
 export * from "./helpers/Validator";
 
